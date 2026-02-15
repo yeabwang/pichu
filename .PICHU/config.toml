@@ -1,0 +1,278 @@
+# Pichu - Project Configuration
+# Override system defaults for this project only
+# All settings are optional - system config provides defaults
+
+# Debug mode - shows context stats after each turn
+debug = true
+
+[llm]
+base_url = "https://openrouter.ai/api/v1"
+model = "arcee-ai/trinity-large-preview:free"
+temperature = 0
+timeout = 120.0
+# max_tokens = 8192  # Uncomment to set max output tokens
+
+[llm.retry]
+max_attempts = 5
+min_wait = 2.0
+max_wait = 60.0
+multiplier = 1.0
+
+[limits]
+max_turns = 100
+max_tool_output_tokens = 50000
+max_file_size = 10485760
+context_window = 128000
+tool_output_display_tokens = 2000
+tool_output_preview_tokens = 200
+# Pruning settings
+prune_protect_tokens = 10000   # Protect most recent N tokens of tool output
+prune_minimum_tokens = 5000    # Only prune if we can save at least N tokens
+# Compression settings
+compression_threshold = 0.8    # Trigger compression at 80% of context_window
+
+# List directory tool configuration
+[list_dir]
+default_depth = 2
+max_depth = 5
+default_limit = 100
+max_limit = 500
+respect_gitignore = true
+include_hidden = false
+
+# Directories to automatically skip (never recurse into)
+skip_dirs = [
+    # Package managers
+    "node_modules",
+    ".npm",
+    ".yarn",
+    ".pnpm-store",
+    # Python
+    "__pycache__",
+    ".venv",
+    "venv",
+    ".env",
+    "env",
+    ".eggs",
+    ".tox",
+    ".pytest_cache",
+    ".mypy_cache",
+    ".ruff_cache",
+    "*.egg-info",
+    # Build outputs
+    "dist",
+    "build",
+    "out",
+    "target",
+    ".next",
+    ".nuxt",
+    ".output",
+    # Version control
+    ".git",
+    ".svn",
+    ".hg",
+    # IDE/Editor
+    ".idea",
+]
+
+# Grep/search tool configuration
+[grep]
+default_limit = 100
+max_limit = 2000
+default_context_lines = 0
+max_context_lines = 10
+max_file_size = 1000000  # 1MB
+timeout = 30
+
+# Files to exclude from search (in addition to .gitignore)
+default_excludes = [
+    "*.min.js",
+    "*.min.css",
+    "*.map",
+    "*.lock",
+    "package-lock.json",
+    "yarn.lock",
+    "pnpm-lock.yaml",
+]
+
+# Binary file extensions to skip
+binary_extensions = [
+    ".exe", ".dll", ".so", ".dylib", ".bin",
+    ".png", ".jpg", ".jpeg", ".gif", ".bmp", ".ico", ".webp", ".svg",
+    ".mp3", ".mp4", ".avi", ".mov", ".mkv", ".wav", ".flac",
+    ".zip", ".tar", ".gz", ".7z", ".rar", ".bz2",
+    ".pdf", ".doc", ".docx", ".xls", ".xlsx", ".ppt", ".pptx",
+    ".pyc", ".pyo", ".class", ".o", ".obj", ".a", ".lib",
+    ".woff", ".woff2", ".ttf", ".eot", ".otf",
+    ".sqlite", ".db", ".pickle", ".pkl",
+]
+
+# Glob/file search tool configuration
+[glob]
+default_limit = 200
+max_limit = 5000
+timeout = 30
+
+# Directories to automatically skip
+skip_dirs = [
+    "node_modules",
+    "__pycache__",
+    ".venv",
+    "venv",
+    ".git",
+    "dist",
+    "build",
+    ".next",
+    "target",
+    ".idea",
+]
+
+# Web search tool configuration
+[web_search]
+# Primary backend: "serper" (needs SERPER_API_KEY), fallback: "ddgs" (free)
+default_backend = "serper"
+fallback_backend = "ddgs"
+
+# Search settings
+max_results = 5
+max_result_chars = 2000
+region = "us-en"
+safesearch = "moderate"
+
+# Cache configuration
+[web_search.cache]
+enabled = true
+mode = "cached"  # "live" (always fresh), "cached" (use cache if valid), "offline" (only cached)
+cache_dir = ".PICHU/cache"
+search_ttl_hours = 24.0   # Search results expire after 24 hours
+fetch_ttl_hours = 168.0   # Fetched pages expire after 7 days
+max_size_mb = 100.0       # Auto-prune old entries when exceeded
+
+# Rate limiting (requests per minute per backend)
+[web_search.rate_limit]
+enabled = true
+serper_rpm = 50
+ddgs_rpm = 30
+fetch_rpm = 60
+
+# Retry configuration (exponential backoff)
+[web_search.retry]
+max_attempts = 3
+base_delay = 1.0
+max_delay = 30.0
+exponential_base = 2.0
+jitter = true
+
+# Security controls (anti-exfiltration, domain filtering)
+[web_search.security]
+# Domain allow/block lists (empty = allow all except blocked)
+allowed_domains = []     # If non-empty, ONLY these domains allowed
+blocked_domains = [      # Always blocked
+    "localhost",
+    "127.0.0.1",
+    "0.0.0.0",
+]
+
+# Additional security options
+allow_ip_addresses = false   # Block raw IP addresses (e.g., http://1.2.3.4)
+allow_localhost = false      # Block localhost/127.0.0.1
+allow_private_networks = false  # Block 10.x, 192.168.x, 172.16-31.x
+allowed_schemes = ["http", "https"]
+
+# URL provenance (anti-exfiltration)
+require_url_provenance = true  # Only allow URLs from search results or user-provided
+
+# Per-session budgets (prevents runaway usage)
+[web_search.budget]
+max_searches = 20        # Max searches per session
+max_results_per_search = 10  # Max results per search
+max_fetches = 30         # Max page fetches per session
+max_bytes_total = 10485760   # 10MB total bytes fetched per session
+
+# Web fetch tool configuration
+[web_fetch]
+# Fetch/scrape settings
+use_playwright = true     # Use Playwright for JavaScript-rendered pages
+playwright_timeout = 10000  # ms
+httpx_timeout = 30          # seconds
+verify_ssl = true
+
+# Content processing
+max_content_length = 50000  # chars
+strip_scripts = true
+strip_styles = true
+
+# PDF support
+pdf_enabled = true
+pdf_max_pages = 50
+
+# User agent
+user_agent = "Pichu/1.0"
+
+# Find action settings
+find_context_lines = 2   # Lines before/after each match
+find_max_matches = 10    # Maximum matches to display
+
+# ============================================================================
+# MCP Servers Configuration
+# ============================================================================
+# Each server can use either stdio transport (command) or HTTP/SSE (url)
+
+# Filesystem server - provides file operations in allowed directories
+[mcp_servers.filesystem]
+command = "npx"
+args = ["-y", "@modelcontextprotocol/server-filesystem", "C:/HSI papers/pichu"]
+
+# Fetch server - allows fetching web content and converting to markdown
+[mcp_servers.fetch]
+command = "npx"
+args = ["-y", "fetch-mcp"]
+
+# ============================================================================
+# Approval System
+# ============================================================================
+
+[mcp_servers.github]
+url = "https://api.githubcopilot.com/mcp/"
+transport = "http"
+startup_timeout_sec = 60.0
+[approval]
+policy = "on_request"
+remember_session = true
+
+[approval.rules]
+# Auto-approve all task operations (they only modify local task storage)
+allow = ["task_create", "task_update", "task_get", "task_list"]
+
+# ============================================================================
+# Hooks
+# ============================================================================
+[hooks]
+
+# Log every tool execution to .PICHU/hooks/tool_use.log
+[[hooks.PostToolUse]]
+[[hooks.PostToolUse.hooks]]
+type = "command"
+command = "python .PICHU/hooks/log_tool_use.py"
+
+# Block dangerous shell commands (rm -rf, dd, etc.)
+[[hooks.PostToolUse]]
+matcher = "write_file|edit_file"
+[[hooks.PostToolUse.hooks]]
+type = "command"
+command = "python .PICHU/hooks/auto_format.py"
+[[hooks.PreToolUse]]
+matcher = "shell"
+[[hooks.PreToolUse.hooks]]
+type = "command"
+command = "python .PICHU/hooks/block_dangerous.py"
+timeout = 10
+
+# Protect sensitive files from edits
+[[hooks.PreToolUse]]
+matcher = "write_file|edit_file"
+[[hooks.PreToolUse.hooks]]
+type = "command"
+command = "python .PICHU/hooks/protect_files.py"
+timeout = 5
+
