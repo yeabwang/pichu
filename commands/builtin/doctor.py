@@ -60,7 +60,7 @@ class DoctorCommand(SlashCommand):
         )
 
         # 4. Config validation
-        errors = config.validate()
+        errors = config.validate() + config.validate_llm()
         config_ok = len(errors) == 0
         checks.append(
             (

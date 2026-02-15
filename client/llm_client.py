@@ -106,6 +106,15 @@ class LLMClient:
     def get_client(self) -> AsyncOpenAI:
         """Get or initialize the underlying OpenAI-compatible async client."""
         if self._client is None:
+            errors = []
+            if not self._config.api_key:
+                errors.append("LLM API key not set. Set LLM_API_KEY environment variable or use /login to configure.")
+            if not self._config.base_url:
+                errors.append("LLM base URL not set. Set LLM_BASE_URL environment variable.")
+            if not self._config.model:
+                errors.append("LLM model not set. Set LLM_MODEL environment variable.")
+            if errors:
+                raise ValueError("\n".join(errors))
             self._client = AsyncOpenAI(
                 api_key=self._config.api_key,
                 base_url=self._config.base_url,

@@ -1056,17 +1056,23 @@ class Config:
         """Validate configuration and return list of errors."""
         errors: list[str] = []
 
+        if self.cwd and not self.cwd.exists():
+            errors.append(f"Working directory does not exist: {self.cwd}")
+
+        return errors
+
+    def validate_llm(self) -> list[str]:
+        """Validate LLM configuration and return list of errors."""
+        errors: list[str] = []
+
         if not self.llm.api_key:
-            errors.append("LLM API key not set. Set LLM_API_KEY environment variable.")
+            errors.append("LLM API key not set. Set LLM_API_KEY environment variable or use /login to configure.")
 
         if not self.llm.base_url:
             errors.append("LLM base URL not set. Set LLM_BASE_URL environment variable.")
 
         if not self.llm.model:
             errors.append("LLM model not set. Set LLM_MODEL environment variable.")
-
-        if self.cwd and not self.cwd.exists():
-            errors.append(f"Working directory does not exist: {self.cwd}")
 
         return errors
 
