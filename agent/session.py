@@ -250,9 +250,7 @@ class Session:
 
     def _init_task_management(self) -> None:
         """Initialize and inject the session task manager into task tools."""
-        task_list_id = os.environ.get(
-            "PICHU_TASK_LIST_ID", f"session-{self.session_id[:8]}"
-        )
+        task_list_id = os.environ.get("PICHU_TASK_LIST_ID", f"session-{self.session_id[:8]}")
 
         try:
             self._task_manager = TaskManager(list_id=task_list_id)
@@ -262,9 +260,7 @@ class Session:
             return
 
         for tool in self.tool_registry.get_tools():
-            if isinstance(
-                tool, (TaskCreateTool, TaskUpdateTool, TaskGetTool, TaskListTool)
-            ):
+            if isinstance(tool, (TaskCreateTool, TaskUpdateTool, TaskGetTool, TaskListTool)):
                 tool.set_task_manager(self._task_manager)
 
     def _init_memory_management(self) -> None:
@@ -275,9 +271,7 @@ class Session:
             self._agents_loader = None
             return
 
-        project_root = (
-            Path(self._config.cwd) if hasattr(self._config, "cwd") else Path.cwd()
-        )
+        project_root = Path(self._config.cwd) if hasattr(self._config, "cwd") else Path.cwd()
         project_name = project_root.name
 
         try:
@@ -317,9 +311,7 @@ class Session:
 
     def _init_subagents(self) -> None:
         """Load sub-agent definitions and register them as runtime tools."""
-        project_root = (
-            Path(self._config.cwd) if hasattr(self._config, "cwd") else Path.cwd()
-        )
+        project_root = Path(self._config.cwd) if hasattr(self._config, "cwd") else Path.cwd()
 
         try:
             self._subagent_loader = SubAgentLoader(
@@ -328,9 +320,7 @@ class Session:
             )
             self._subagent_loader.load_all()
 
-            fallback_model = (
-                self._config.llm.model if hasattr(self._config.llm, "model") else None
-            )
+            fallback_model = self._config.llm.model if hasattr(self._config.llm, "model") else None
 
             subagent_tools = create_subagent_tools(
                 subagents=self._subagent_loader.get_all(),
@@ -463,9 +453,7 @@ class Session:
             self._storage.update_metadata(
                 self.session_id,
                 turn_count=self._turn_count,
-                message_count=(
-                    self.context_manager.message_count if self.context_manager else 0
-                ),
+                message_count=(self.context_manager.message_count if self.context_manager else 0),
             )
         except Exception as e:
             logger.warning(f"Failed to save message to transcript: {e}")
@@ -484,9 +472,7 @@ class Session:
         return meta.title if meta else ""
 
     @classmethod
-    def from_transcript(
-        cls, config: Config, session_id: str
-    ) -> tuple[Session, list[TranscriptEntry]] | None:
+    def from_transcript(cls, config: Config, session_id: str) -> tuple[Session, list[TranscriptEntry]] | None:
         """Load a session shell plus transcript entries for resume flows."""
         session_cfg = getattr(config, "session", None)
         if not session_cfg or not session_cfg.enabled:
@@ -508,11 +494,7 @@ class Session:
 
         session = cls(config, session_id=session_id)
         session._turn_count = meta.turn_count
-        session.created_at = (
-            datetime.fromisoformat(meta.created_at)
-            if meta.created_at
-            else datetime.now()
-        )
+        session.created_at = datetime.fromisoformat(meta.created_at) if meta.created_at else datetime.now()
 
         entries = storage.load_transcript(session_id)
 

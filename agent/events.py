@@ -1,6 +1,7 @@
 """Event types and payload builders for the agent runtime stream."""
 
 from __future__ import annotations
+
 from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any
@@ -56,9 +57,7 @@ class AgentEvent:
         )
 
     @classmethod
-    def from_end(
-        cls, response: str | None = None, usage: TokenUsage | None = None
-    ) -> AgentEvent:
+    def from_end(cls, response: str | None = None, usage: TokenUsage | None = None) -> AgentEvent:
         """Create an agent-end event."""
         return cls(
             type=AgentEventType.AGENT_END,
@@ -66,9 +65,7 @@ class AgentEvent:
         )
 
     @classmethod
-    def from_error(
-        cls, error_message: str, details: dict[str, Any] | None = None
-    ) -> AgentEvent:
+    def from_error(cls, error_message: str, details: dict[str, Any] | None = None) -> AgentEvent:
         """Create an agent-error event."""
         return cls(
             type=AgentEventType.AGENT_ERROR,
@@ -84,9 +81,7 @@ class AgentEvent:
         )
 
     @classmethod
-    def from_text_complete(
-        cls, content: str, usage: TokenUsage | None = None
-    ) -> AgentEvent:
+    def from_text_complete(cls, content: str, usage: TokenUsage | None = None) -> AgentEvent:
         """Create a text-complete event."""
         return cls(
             type=AgentEventType.TEXT_COMPLETE,
@@ -97,9 +92,7 @@ class AgentEvent:
         )
 
     @classmethod
-    def tool_call_start(
-        cls, call_id: str, name: str, arguments: dict[str, Any]
-    ) -> AgentEvent:
+    def tool_call_start(cls, call_id: str, name: str, arguments: dict[str, Any]) -> AgentEvent:
         """Create a tool-call-start event."""
         return cls(
             type=AgentEventType.TOOL_CALL_START,
@@ -111,9 +104,7 @@ class AgentEvent:
         )
 
     @classmethod
-    def tool_call_complete(
-        cls, call_id: str, name: str, result: ToolResult
-    ) -> AgentEvent:
+    def tool_call_complete(cls, call_id: str, name: str, result: ToolResult) -> AgentEvent:
         """Create a tool-call-complete event."""
         diff_summary = None
         if result.diff:
@@ -292,21 +283,13 @@ class AgentEvent:
             type=AgentEventType.APPROVAL_REQUESTED,
             data={
                 "tool_name": confirmation.tool_name,
-                "tool_kind": (
-                    confirmation.tool_kind.value
-                    if confirmation.tool_kind
-                    else "unknown"
-                ),
+                "tool_kind": (confirmation.tool_kind.value if confirmation.tool_kind else "unknown"),
                 "description": confirmation.description,
                 "params": confirmation.params,
                 "command": confirmation.command,
                 "affected_paths": confirmation.affected_paths,
                 "is_dangerous": confirmation.is_dangerous,
-                "diff": (
-                    confirmation.diff.create_diff_summary()
-                    if confirmation.diff
-                    else None
-                ),
+                "diff": (confirmation.diff.create_diff_summary() if confirmation.diff else None),
             },
         )
 
@@ -357,9 +340,7 @@ class AgentEvent:
         )
 
     @classmethod
-    def llm_retry(
-        cls, attempt: int, max_attempts: int, error: str, wait_seconds: float
-    ) -> AgentEvent:
+    def llm_retry(cls, attempt: int, max_attempts: int, error: str, wait_seconds: float) -> AgentEvent:
         """Create an LLM-retry event."""
         return cls(
             type=AgentEventType.LLM_RETRY,
