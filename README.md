@@ -46,6 +46,12 @@ pipx install pichu
 # From source
 git clone https://github.com/yeabwang/pichu.git && cd pichu
 uv venv && uv pip install -e .
+
+# From source (using requirements files)
+git clone https://github.com/yeabwang/pichu.git && cd pichu
+uv venv
+uv pip install -r requirements.txt && uv pip install -e .
+uv pip install -r requirements-web.txt   # optional: web search & fetch tools
 ```
 
 ### First-Time Setup
@@ -197,7 +203,16 @@ uv pip install -e .[dev,web]    # install with dev and web extras
 
 # Or use requirements files
 uv pip install -r requirements-dev.txt -r requirements-web.txt
+uv pip install -e .
 ```
+
+### Requirements Files
+
+| File | Contents |
+| ---- | -------- |
+| `requirements.txt` | Core runtime dependencies |
+| `requirements-dev.txt` | Core + testing, linting, and build tools |
+| `requirements-web.txt` | Core + web search, fetch, and PDF support |
 
 ### Run Tests
 

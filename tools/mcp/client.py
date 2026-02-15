@@ -46,19 +46,24 @@ class MCPClient:
     def tools(self) -> list[MCPToolInfo]:
         return list(self._tools.values())
 
+    def _expand_vars(self, value: str) -> str:
+        """Expand {cwd} placeholder in config values."""
+        return value.replace("{cwd}", str(self.cwd))
+
     def _create_transports(self) -> list[tuple[str, Any]]:
         if self.config.command:
             env = os.environ.copy()
             env.update(self.config.env)
             # Use config cwd if set, otherwise use instance cwd
             cwd = str(self.config.cwd) if self.config.cwd else str(self.cwd)
-            logger.debug(f"Creating StdioTransport: command={self.config.command}, args={self.config.args}, cwd={cwd}")
+            expanded_args = [self._expand_vars(a) for a in self.config.args]
+            logger.debug(f"Creating StdioTransport: command={self.config.command}, args={expanded_args}, cwd={cwd}")
             return [
                 (
                     "stdio",
                     StdioTransport(
                         command=self.config.command,
-                        args=list(self.config.args),
+                        args=expanded_args,
                         env=env,
                         cwd=cwd,
                     ),

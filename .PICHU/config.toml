@@ -3,7 +3,7 @@
 # All settings are optional - system config provides defaults
 
 # Debug mode - shows context stats after each turn
-debug = true
+debug = false
 
 [llm]
 base_url = "https://openrouter.ai/api/v1"
@@ -221,7 +221,7 @@ find_max_matches = 10    # Maximum matches to display
 # Filesystem server - provides file operations in allowed directories
 [mcp_servers.filesystem]
 command = "npx"
-args = ["-y", "@modelcontextprotocol/server-filesystem", "C:/HSI papers/pichu"]
+args = ["-y", "@modelcontextprotocol/server-filesystem", "{cwd}"]
 
 # Fetch server - allows fetching web content and converting to markdown
 [mcp_servers.fetch]

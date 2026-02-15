@@ -28,6 +28,12 @@ pipx install pichu
 ```bash
 git clone https://github.com/yeabwang/pichu.git && cd pichu
 uv venv && uv pip install -e .
+
+# Or use requirements files
+git clone https://github.com/yeabwang/pichu.git && cd pichu
+uv venv
+uv pip install -r requirements.txt && uv pip install -e .
+uv pip install -r requirements-web.txt   # optional: web search & fetch tools
 ```
 
 ### Verify
@@ -40,7 +46,18 @@ For environments that need web tooling (search, fetch, PDF):
 
 ```bash
 uv pip install .[web]
+
+# Or use requirements file
+uv pip install -r requirements-web.txt
 ```
+
+### Requirements Files
+
+| File | Contents |
+|------|----------|
+| `requirements.txt` | Core runtime dependencies |
+| `requirements-dev.txt` | Core + testing, linting, and build tools |
+| `requirements-web.txt` | Core + web search, fetch, and PDF support |
 
 ## Docker
 

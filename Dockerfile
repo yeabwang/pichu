@@ -9,7 +9,7 @@ WORKDIR /app
 
 COPY . /app
 
-RUN uv pip install --system .
+RUN uv pip install --system .[web]
 
 WORKDIR /workspace
 
