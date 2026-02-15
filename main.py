@@ -71,7 +71,8 @@ class CLI:
         async with Agent(self._config) as agent:
             self.agent = agent
             # Wire the approval callback
-            assert agent.session is not None
+            if agent.session is None:
+                raise RuntimeError("Agent session not initialized")
             agent.session.approval_manager.set_confirmation_callback(self._approval_callback)
             return await self._process_message(message)
 
@@ -99,7 +100,8 @@ class CLI:
         async with agent:
             self.agent = agent
             # Wire the approval callback
-            assert agent.session is not None
+            if agent.session is None:
+                raise RuntimeError("Agent session not initialized")
             agent.session.approval_manager.set_confirmation_callback(self._approval_callback)
 
             # If resumed, replay transcript
@@ -118,7 +120,8 @@ class CLI:
 
                     # Slash command handling
                     if self._router.is_command(user_input):
-                        assert agent.session is not None
+                        if agent.session is None:
+                            raise RuntimeError("Agent session not initialized")
                         result = await self._router.dispatch(
                             user_input,
                             session=agent.session,
@@ -137,7 +140,8 @@ class CLI:
                         continue
 
                     # Auto-title on first user message
-                    assert agent.session is not None
+                    if agent.session is None:
+                        raise RuntimeError("Agent session not initialized")
                     if agent.session.turn_count == 0 and agent.session.storage:
                         title = user_input[:60].strip()
                         agent.session.set_title(title)

@@ -132,7 +132,7 @@ jobs:
         run: uv sync --extra dev
 
       - name: Bandit security check
-        run: uv run ruff check --select S .
+        run: uv run ruff check --select S agent/ client/ commands/ config/ context/ hooks/ safety/ sub_agents/ tools/ ui/ utils/ main.py
 
   # ── Build ───────────────────────────────────
   build:

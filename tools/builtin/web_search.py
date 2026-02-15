@@ -422,7 +422,8 @@ class WebSearchTool(Tool):
     async def _search_serper(self, query: str, max_results: int) -> list[SearchResultItem]:
         """Search using Serper API."""
         url = "https://google.serper.dev/search"
-        assert self._serper_api_key is not None
+        if self._serper_api_key is None:
+            raise ValueError("Serper API key is required for Serper backend")
         headers = {
             "X-API-KEY": self._serper_api_key,
             "Content-Type": "application/json",

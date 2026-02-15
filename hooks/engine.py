@@ -290,8 +290,8 @@ class HookEngine:
             # Try to kill the process
             try:
                 proc.kill()
-            except Exception:
-                pass
+            except Exception as kill_error:
+                logger.debug("Failed to kill timed-out hook process: %s", kill_error)
             return HookResult(
                 exit_code=1,
                 stderr=f"Hook timed out after {timeout}s",

@@ -72,7 +72,7 @@ class CustomSlashCommand(SlashCommand):
                 loop = asyncio.get_running_loop()
                 proc = await loop.run_in_executor(
                     None,
-                    lambda: subprocess.run(
+                    lambda: subprocess.run(  # noqa: S602
                         command,
                         shell=True,
                         capture_output=True,

@@ -1296,13 +1296,18 @@ name = "pichu"
 version = "0.1.0"
 source = { editable = "." }
 dependencies = [
+    { name = "beautifulsoup4" },
     { name = "click" },
+    { name = "ddgs" },
     { name = "fastmcp" },
+    { name = "html2text" },
     { name = "httpx" },
     { name = "openai" },
     { name = "pathspec" },
     { name = "platformdirs" },
+    { name = "playwright" },
     { name = "pydantic" },
+    { name = "pypdf" },
     { name = "python-dotenv" },
     { name = "pyyaml" },
     { name = "rich" },
@@ -1323,31 +1328,24 @@ dev = [
     { name = "twine" },
     { name = "types-pyyaml" },
 ]
-web = [
-    { name = "beautifulsoup4" },
-    { name = "ddgs" },
-    { name = "html2text" },
-    { name = "playwright" },
-    { name = "pypdf" },
-]
 
 [package.metadata]
 requires-dist = [
-    { name = "beautifulsoup4", marker = "extra == 'web'", specifier = ">=4.12.3" },
+    { name = "beautifulsoup4", specifier = ">=4.12.3" },
     { name = "build", marker = "extra == 'dev'", specifier = ">=1.2.2.post1" },
     { name = "click", specifier = ">=8.1.7" },
-    { name = "ddgs", marker = "extra == 'web'", specifier = ">=8.1.1" },
+    { name = "ddgs", specifier = ">=8.1.1" },
     { name = "fastmcp", specifier = ">=2.12.0" },
-    { name = "html2text", marker = "extra == 'web'", specifier = ">=2024.2.26" },
+    { name = "html2text", specifier = ">=2024.2.26" },
     { name = "httpx", specifier = ">=0.27.0" },
     { name = "mypy", marker = "extra == 'dev'", specifier = ">=1.11.0" },
     { name = "openai", specifier = ">=1.52.0" },
     { name = "pathspec", specifier = ">=0.11.0" },
     { name = "platformdirs", specifier = ">=4.3.0" },
-    { name = "playwright", marker = "extra == 'web'", specifier = ">=1.50.0" },
+    { name = "playwright", specifier = ">=1.50.0" },
     { name = "pre-commit", marker = "extra == 'dev'", specifier = ">=3.7.0" },
     { name = "pydantic", specifier = ">=2.9.0" },
-    { name = "pypdf", marker = "extra == 'web'", specifier = ">=5.3.0" },
+    { name = "pypdf", specifier = ">=5.3.0" },
     { name = "pytest", marker = "extra == 'dev'", specifier = ">=8.0.0" },
     { name = "pytest-asyncio", marker = "extra == 'dev'", specifier = ">=0.23.0" },
     { name = "pytest-cov", marker = "extra == 'dev'", specifier = ">=5.0.0" },
@@ -1361,7 +1359,7 @@ requires-dist = [
     { name = "twine", marker = "extra == 'dev'", specifier = ">=5.1.1" },
     { name = "types-pyyaml", marker = "extra == 'dev'", specifier = ">=6.0.0" },
 ]
-provides-extras = ["dev", "web"]
+provides-extras = ["dev"]
 
 [[package]]
 name = "platformdirs"

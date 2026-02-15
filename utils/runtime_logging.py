@@ -48,8 +48,8 @@ def _close_and_remove_handlers(logger: logging.Logger) -> None:
         logger.removeHandler(handler)
         try:
             handler.close()
-        except Exception:
-            pass
+        except Exception as e:
+            logging.getLogger(__name__).debug("Failed to close log handler: %s", e)
 
 
 class SecretRedactionFilter(logging.Filter):

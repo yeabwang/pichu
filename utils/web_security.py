@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import fnmatch
 import ipaddress
+import logging
 import socket
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
@@ -20,6 +21,8 @@ from utils.web_types import WebToolError, WebToolErrorCode
 
 if TYPE_CHECKING:
     from utils.web_types import SearchResultItem
+
+logger = logging.getLogger(__name__)
 
 # Security Configuration
 
@@ -86,7 +89,7 @@ class URLValidator:
         "localhost",
         "127.0.0.1",
         "::1",
-        "0.0.0.0",
+        "0.0.0.0",  # noqa: S104
         "localhost.localdomain",
     ]
 
@@ -243,8 +246,8 @@ class URLProvenanceTracker:
             parsed = urlparse(url)
             if parsed.netloc:
                 self._seen_domains.add(parsed.netloc.lower())
-        except Exception:
-            pass
+        except Exception as e:
+            logger.debug("Failed to parse domain from URL '%s': %s", url, e)
 
     def is_allowed(self, url: str) -> tuple[bool, WebToolError | None]:
         """Check if URL can be fetched based on provenance.
@@ -262,8 +265,12 @@ class URLProvenanceTracker:
                 domain = parsed.netloc.lower()
                 if domain in self._seen_domains:
                     return True, None
-            except Exception:
-                pass
+            except Exception as e:
+                return False, WebToolError(
+                    code=WebToolErrorCode.HTTP_ERROR,
+                    message=f"Invalid URL format: {e}",
+                    details={"url": url},
+                )
 
         return False, WebToolError(
             code=WebToolErrorCode.URL_PROVENANCE_FAILED,

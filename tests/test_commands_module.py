@@ -18,6 +18,7 @@ from commands.builtin import (
     register_all_commands,
 )
 from commands.builtin.help import HelpCommand
+from commands.builtin.init import InitCommand
 from commands.custom_loader import CustomSlashCommand, load_custom_commands
 from commands.router import CommandRouter
 
@@ -203,3 +204,20 @@ async def test_help_lists_all_registered_builtin_commands():
 
     expected = {command.spec().usage for command in build_builtin_commands()}
     assert set(captured.get("usages", [])) == expected
+
+
+@pytest.mark.asyncio
+async def test_init_writes_full_project_config_without_login_managed_model_settings(tmp_path):
+    command = InitCommand()
+    result = await command.execute("", session=object(), tui=_ConsoleTUI(), config=_DummyConfig(cwd=tmp_path))
+    assert result.error is None
+
+    config_path = tmp_path / ".PICHU" / "config.toml"
+    assert config_path.exists()
+
+    config_text = config_path.read_text(encoding="utf-8")
+    assert "[limits]" in config_text
+    assert "[web_search]" in config_text
+    assert "[web_fetch]" in config_text
+    assert 'base_url = "' not in config_text
+    assert 'model = "' not in config_text

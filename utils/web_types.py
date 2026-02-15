@@ -121,7 +121,7 @@ class SearchResultItem:
             try:
                 self.domain = urlparse(self.url).netloc
             except Exception:
-                pass
+                self.domain = None
 
     def to_dict(self) -> dict[str, Any]:
         return {

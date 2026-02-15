@@ -614,7 +614,7 @@ async def retry_async(
         RetryError: If all attempts fail
     """
     import asyncio
-    import random
+    import secrets
 
     cfg = config or RetryConfig()
     last_error: Exception | None = None
@@ -636,7 +636,7 @@ async def retry_async(
 
             # Add jitter to prevent thundering herd
             if cfg.jitter:
-                delay = delay * (0.5 + random.random())
+                delay = delay * (0.5 + (secrets.randbelow(10_000) / 10_000))
 
             await asyncio.sleep(delay)
 

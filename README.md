@@ -45,13 +45,8 @@ pipx install pichu
 
 # From source
 git clone https://github.com/yeabwang/pichu.git && cd pichu
-uv venv && uv pip install -e .
-
-# From source (using requirements files)
-git clone https://github.com/yeabwang/pichu.git && cd pichu
 uv venv
 uv pip install -r requirements.txt && uv pip install -e .
-uv pip install -r requirements-web.txt   # optional: web search & fetch tools
 ```
 
 ### First-Time Setup
@@ -116,36 +111,36 @@ pichu [PROMPT]              Run interactively, or execute a single prompt
 
 Pichu includes 28 slash commands for runtime control. Type `/help` inside a session for the full list.
 
-| Command          | Description                                    |
-| ---------------- | ---------------------------------------------- |
-| `/agents`      | List loaded sub-agents                         |
-| `/clear`       | Clear conversation history                     |
+| Command          | Description                                      |
+| ---------------- | ------------------------------------------------ |
+| `/agents`      | List loaded sub-agents                           |
+| `/clear`       | Clear conversation history                       |
 | `/compact`     | Compact context with optional focus instructions |
-| `/config`      | View or open settings configuration            |
-| `/context`     | Visualize context token usage                  |
-| `/copy`        | Copy last response to clipboard                |
-| `/cost`        | Token usage and cost statistics                |
-| `/debug`       | Troubleshoot current session                   |
-| `/doctor`      | Health check installation                      |
-| `/exit`        | Exit the session                               |
-| `/export`      | Export conversation to file                    |
-| `/fork`        | Fork this session into a new branch            |
-| `/github`      | Setup/status for GitHub MCP tasks              |
-| `/help`        | Display help information and available commands |
-| `/hooks`       | Display registered lifecycle hooks             |
-| `/init`        | Initialize project with AGENTS.md              |
-| `/login`       | Configure API key, provider, and model         |
-| `/mcp`         | Manage MCP server connections                  |
-| `/memory`      | Edit memory files (AGENTS.md)                  |
-| `/model`       | Switch or view the AI model                    |
-| `/permissions` | Show approval policy and permission rules      |
-| `/rename`      | Rename the current session                     |
-| `/rewind`      | Rewind to a previous checkpoint                |
-| `/sessions`    | List and manage saved sessions                 |
-| `/stats`       | Usage visualizations (tokens, turns, duration) |
-| `/status`      | Version, model, and connectivity info          |
-| `/tasks`       | List and manage tasks                          |
-| `/theme`       | Change color theme                             |
+| `/config`      | View or open settings configuration              |
+| `/context`     | Visualize context token usage                    |
+| `/copy`        | Copy last response to clipboard                  |
+| `/cost`        | Token usage and cost statistics                  |
+| `/debug`       | Troubleshoot current session                     |
+| `/doctor`      | Health check installation                        |
+| `/exit`        | Exit the session                                 |
+| `/export`      | Export conversation to file                      |
+| `/fork`        | Fork this session into a new branch              |
+| `/github`      | Setup/status for GitHub MCP tasks                |
+| `/help`        | Display help information and available commands  |
+| `/hooks`       | Display registered lifecycle hooks               |
+| `/init`        | Initialize project with AGENTS.md                |
+| `/login`       | Configure API key, provider, and model           |
+| `/mcp`         | Manage MCP server connections                    |
+| `/memory`      | Edit memory files (AGENTS.md)                    |
+| `/model`       | Switch or view the AI model                      |
+| `/permissions` | Show approval policy and permission rules        |
+| `/rename`      | Rename the current session                       |
+| `/rewind`      | Rewind to a previous checkpoint                  |
+| `/sessions`    | List and manage saved sessions                   |
+| `/stats`       | Usage visualizations (tokens, turns, duration)   |
+| `/status`      | Version, model, and connectivity info            |
+| `/tasks`       | List and manage tasks                            |
+| `/theme`       | Change color theme                               |
 
 ## Built-in Tools
 
@@ -199,20 +194,19 @@ Behavior instructions for the agent are loaded from `.PICHU/AGENT.md`.
 
 ```bash
 uv venv
-uv pip install -e .[dev,web]    # install with dev and web extras
+uv pip install -e .[dev]    # install with dev extras
 
 # Or use requirements files
-uv pip install -r requirements-dev.txt -r requirements-web.txt
+uv pip install -r requirements-dev.txt
 uv pip install -e .
 ```
 
 ### Requirements Files
 
-| File | Contents |
-| ---- | -------- |
-| `requirements.txt` | Core runtime dependencies |
-| `requirements-dev.txt` | Core + testing, linting, and build tools |
-| `requirements-web.txt` | Core + web search, fetch, and PDF support |
+| File                     | Contents                                  |
+| ------------------------ | ----------------------------------------- |
+| `requirements.txt`     | Runtime dependencies (core + web tooling) |
+| `requirements-dev.txt` | Core + testing, linting, and build tools  |
 
 ### Run Tests
 
@@ -222,7 +216,7 @@ uv run pytest -q
 
 ### Project Bootstrap
 
-Inside a Pichu session, run `/init` to generate `.PICHU/config.toml` and project guidance files.
+Inside a Pichu session, run `/init` to generate a full `.PICHU/config.toml` baseline and project guidance files.
 
 ### Build
 

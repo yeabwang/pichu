@@ -14,16 +14,24 @@ if TYPE_CHECKING:
 
 def _copy_to_clipboard(text: str) -> bool:
     """Cross-platform clipboard copy."""
+    import os
+    import shutil
     import subprocess
     import sys
 
     try:
         if sys.platform == "win32":
-            process = subprocess.Popen(["clip"], stdin=subprocess.PIPE, shell=True)
+            clip_path = os.path.join(os.environ.get("SystemRoot", r"C:\Windows"), "System32", "clip.exe")
+            if not os.path.exists(clip_path):
+                return False
+            process = subprocess.Popen([clip_path], stdin=subprocess.PIPE)  # noqa: S603
             process.communicate(text.encode("utf-16le"))
             return process.returncode == 0
         elif sys.platform == "darwin":
-            process = subprocess.Popen(["pbcopy"], stdin=subprocess.PIPE)
+            pbcopy_path = shutil.which("pbcopy")
+            if not pbcopy_path:
+                return False
+            process = subprocess.Popen([pbcopy_path], stdin=subprocess.PIPE)  # noqa: S603
             process.communicate(text.encode("utf-8"))
             return process.returncode == 0
         else:
@@ -32,8 +40,11 @@ def _copy_to_clipboard(text: str) -> bool:
                 ["xclip", "-selection", "clipboard"],
                 ["xsel", "--clipboard", "--input"],
             ]:
+                executable = shutil.which(cmd[0])
+                if not executable:
+                    continue
                 try:
-                    process = subprocess.Popen(cmd, stdin=subprocess.PIPE)
+                    process = subprocess.Popen([executable, *cmd[1:]], stdin=subprocess.PIPE)  # noqa: S603
                     process.communicate(text.encode("utf-8"))
                     if process.returncode == 0:
                         return True

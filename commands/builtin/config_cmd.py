@@ -103,7 +103,7 @@ class ConfigCommand(SlashCommand):
             target = str(project_config) if project_config.exists() else str(global_config)
             if editor:
                 try:
-                    subprocess.Popen([editor, target])
+                    subprocess.Popen([editor, target])  # noqa: S603
                     tui.console.print(f"  [dim]Opening {target} in {editor}...[/dim]")
                 except Exception as e:
                     return CommandResult(error=f"Failed to open editor: {e}")

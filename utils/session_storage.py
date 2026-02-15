@@ -124,8 +124,11 @@ class TranscriptEntry:
 def _get_git_branch(cwd: str) -> str:
     """Get the current git branch, or empty string."""
     try:
-        result = subprocess.run(
-            ["git", "rev-parse", "--abbrev-ref", "HEAD"],
+        git_executable = shutil.which("git")
+        if not git_executable:
+            return ""
+        result = subprocess.run(  # noqa: S603
+            [git_executable, "rev-parse", "--abbrev-ref", "HEAD"],
             capture_output=True,
             text=True,
             timeout=5,

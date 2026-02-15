@@ -360,7 +360,7 @@ class WebFetchTool(Tool):
                 raw_content, mime_type, title = pw_result
                 content = raw_content
             except Exception:
-                pass
+                content = None
 
         # Fallback to httpx
         if content is None:

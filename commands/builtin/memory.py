@@ -19,7 +19,6 @@ class MemoryCommand(SlashCommand):
     aliases = ["mem"]
 
     async def execute(self, args: str, session: "Session", tui: "TUI", config: "Config") -> CommandResult:
-
         parts = args.strip().split(None, 1)
         action = parts[0].lower() if parts else "list"
         action_args = parts[1] if len(parts) > 1 else ""
@@ -134,7 +133,7 @@ class MemoryCommand(SlashCommand):
         editor = os.environ.get("EDITOR", os.environ.get("VISUAL", ""))
         if editor:
             try:
-                subprocess.Popen([editor, str(project_agents)])
+                subprocess.Popen([editor, str(project_agents)])  # noqa: S603
                 tui.console.print(f"  [dim]Opening {project_agents} in {editor}...[/dim]")
             except Exception as e:
                 return CommandResult(error=f"Failed to open editor: {e}")
