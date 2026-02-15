@@ -8,7 +8,8 @@ from enum import Enum
 from pathlib import Path
 from typing import Any, Literal
 
-from pydantic import BaseModel, Field as PydanticField, model_validator
+from pydantic import BaseModel, model_validator
+from pydantic import Field as PydanticField
 
 # Singleton instance
 _config_instance: Config | None = None
@@ -58,9 +59,7 @@ def _normalize_mcp_servers(raw_servers: dict[str, Any]) -> dict[str, MCPServerCo
         if isinstance(server_data, dict):
             normalized[server_name] = MCPServerConfig(**server_data)
             continue
-        raise TypeError(
-            f"mcp_servers.{server_name} must be a mapping, got {type(server_data).__name__}"
-        )
+        raise TypeError(f"mcp_servers.{server_name} must be a mapping, got {type(server_data).__name__}")
     return normalized
 
 
@@ -87,9 +86,7 @@ def _normalize_hook_handlers(raw_hooks: Any) -> list[HookHandlerConfig]:
                 )
             )
             continue
-        raise TypeError(
-            f"Hook handler must be a mapping, got {type(raw_handler).__name__}"
-        )
+        raise TypeError(f"Hook handler must be a mapping, got {type(raw_handler).__name__}")
     return handlers
 
 
@@ -113,9 +110,7 @@ def _normalize_hook_matchers(raw_matchers: Any) -> list[HookMatcherConfig]:
                 )
             )
             continue
-        raise TypeError(
-            f"Hook matcher must be a mapping, got {type(raw_matcher).__name__}"
-        )
+        raise TypeError(f"Hook matcher must be a mapping, got {type(raw_matcher).__name__}")
     return parsed_matchers
 
 
@@ -138,9 +133,7 @@ def _merge_hooks_config(current: Any, raw_hooks: dict[str, Any]) -> HooksConfig:
 def _deep_update(obj: Any, data: dict[str, Any]) -> None:
     """Apply nested dictionary updates onto config dataclasses and enums."""
     if not isinstance(data, dict):
-        raise TypeError(
-            f"Config update payload must be a mapping, got {type(data).__name__}"
-        )
+        raise TypeError(f"Config update payload must be a mapping, got {type(data).__name__}")
 
     for key, value in data.items():
         if not hasattr(obj, key):
@@ -211,9 +204,7 @@ class LimitsConfig:
     prune_protect_tokens: int = 10_000  # Protect most recent N tokens of tool output
     prune_minimum_tokens: int = 5_000  # Only prune if we can save at least N tokens
     # Compression settings
-    compression_threshold: float = (
-        0.8  # Trigger compression at this % of context_window
-    )
+    compression_threshold: float = 0.8  # Trigger compression at this % of context_window
 
 
 @dataclass
@@ -759,18 +750,14 @@ class MemoryConfig:
 
     # Global memory storage path (user-level, cross-project)
     # Default: ~/.pichu/memory/
-    global_memory_path: Path = field(
-        default_factory=lambda: Path.home() / ".pichu" / "memory"
-    )
+    global_memory_path: Path = field(default_factory=lambda: Path.home() / ".pichu" / "memory")
 
     # Project memory storage path (relative to project root)
     # Default: .pichu/memory/
     project_memory_dir: str = ".pichu/memory"
 
     # AGENTS.md paths
-    global_agents_path: Path = field(
-        default_factory=lambda: Path.home() / ".pichu" / "AGENTS.md"
-    )
+    global_agents_path: Path = field(default_factory=lambda: Path.home() / ".pichu" / "AGENTS.md")
     project_agents_file: str = "AGENTS.md"
     local_agents_file: str = "AGENTS.local.md"
 
@@ -811,22 +798,14 @@ class MCPServerConfig(BaseModel):
         has_url = self.url is not None
 
         if not has_command and not has_url:
-            raise ValueError(
-                "Either 'command' or 'url' must be set for MCPServerConfig."
-            )
+            raise ValueError("Either 'command' or 'url' must be set for MCPServerConfig.")
         if has_command and has_url:
-            raise ValueError(
-                "Only one of 'command' or 'url' can be set for MCPServerConfig."
-            )
+            raise ValueError("Only one of 'command' or 'url' can be set for MCPServerConfig.")
 
         if has_command and self.transport is not None:
-            raise ValueError(
-                "'transport' can only be set when 'url' is configured for MCPServerConfig."
-            )
+            raise ValueError("'transport' can only be set when 'url' is configured for MCPServerConfig.")
         if has_command and self.headers:
-            raise ValueError(
-                "'headers' can only be set when 'url' is configured for MCPServerConfig."
-            )
+            raise ValueError("'headers' can only be set when 'url' is configured for MCPServerConfig.")
         if has_url and self.transport is None:
             # Preserve legacy behavior for existing URL-based configs.
             self.transport = "sse"
@@ -968,9 +947,7 @@ class SessionPersistenceConfig:
     enabled: bool = True
 
     # Storage directory (default: ~/.pichu/sessions)
-    storage_dir: Path = field(
-        default_factory=lambda: Path.home() / ".pichu" / "sessions"
-    )
+    storage_dir: Path = field(default_factory=lambda: Path.home() / ".pichu" / "sessions")
 
     # Auto-cleanup: remove sessions older than this many days
     cleanup_days: int = 30
@@ -1054,9 +1031,7 @@ class Config:
     hooks: HooksConfig = field(default_factory=HooksConfig)
 
     # Loop detection
-    loop_detection: LoopDetectionConfig = field(
-        default_factory=lambda: LoopDetectionConfig()
-    )
+    loop_detection: LoopDetectionConfig = field(default_factory=lambda: LoopDetectionConfig())
 
     # Session persistence & checkpoints
     session: SessionPersistenceConfig = field(default_factory=SessionPersistenceConfig)
@@ -1085,9 +1060,7 @@ class Config:
             errors.append("LLM API key not set. Set LLM_API_KEY environment variable.")
 
         if not self.llm.base_url:
-            errors.append(
-                "LLM base URL not set. Set LLM_BASE_URL environment variable."
-            )
+            errors.append("LLM base URL not set. Set LLM_BASE_URL environment variable.")
 
         if not self.llm.model:
             errors.append("LLM model not set. Set LLM_MODEL environment variable.")
