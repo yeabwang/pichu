@@ -28,11 +28,13 @@ pipx install pichu
 ```bash
 git clone https://github.com/yeabwang/pichu.git && cd pichu
 uv venv && uv pip install -e .
+/init          # generate AGENTS.md and .pichu/config.toml in the current project
 
 # Or use requirements files
 git clone https://github.com/yeabwang/pichu.git && cd pichu
 uv venv
 uv pip install -r requirements.txt && uv pip install -e .
+/init          # generate AGENTS.md and .pichu/config.toml in the current project
 ```
 
 ### Verify
@@ -114,19 +116,25 @@ The pipeline runs on every push and pull request:
 5. **Test** — `pytest -q`
 6. **Build** — `python -m build`
 
+To avoid cross-filesystem hardlink warnings in CI, set:
+
+```bash
+export UV_LINK_MODE=copy
+```
+
 ## Environment Variables
 
 | Variable | Required | Default | Description |
 |----------|----------|---------|-------------|
 | `LLM_API_KEY` | Yes | — | API key for your LLM provider |
 | `LLM_BASE_URL` | No | OpenRouter URL | Provider API endpoint |
-| `LLM_MODEL` | No | `mistralai/devstral-2512:free` | Model identifier |
+| `LLM_MODEL` | No | Not set (run `/login`) | Model identifier |
 | `SERPER_API_KEY` | No | — | Web search API key |
 | `PICHU_DEBUG` | No | `false` | Enable debug logging |
-| `PICHU_PROJECT_DIR` | No | `.PICHU` | Project config directory name |
+| `PICHU_PROJECT_DIR` | No | `.pichu` | Project config directory name |
 | `PICHU_CONFIG_FILE` | No | `config.toml` | Config file name |
 
-Project-level config should live in `.PICHU/config.toml`. See [Config Module](config-module.md) for full schema.
+Project-level config should live in `.pichu/config.toml`. See [Config Module](config-module.md) for full schema.
 
 ## Related
 

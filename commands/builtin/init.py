@@ -156,7 +156,7 @@ safesearch = "moderate"
 [web_search.cache]
 enabled = true
 mode = "cached"
-cache_dir = ".PICHU/cache"
+cache_dir = ".pichu/cache"
 search_ttl_hours = 24.0
 fetch_ttl_hours = 168.0
 max_size_mb = 100.0
@@ -228,26 +228,26 @@ allow = ["task_create", "task_update", "task_get", "task_list"]
 [[hooks.PostToolUse]]
 [[hooks.PostToolUse.hooks]]
 type = "command"
-command = "python .PICHU/hooks/log_tool_use.py"
+command = "python .pichu/hooks/log_tool_use.py"
 
 [[hooks.PostToolUse]]
 matcher = "write_file|edit_file"
 [[hooks.PostToolUse.hooks]]
 type = "command"
-command = "python .PICHU/hooks/auto_format.py"
+command = "python .pichu/hooks/auto_format.py"
 
 [[hooks.PreToolUse]]
 matcher = "shell"
 [[hooks.PreToolUse.hooks]]
 type = "command"
-command = "python .PICHU/hooks/block_dangerous.py"
+command = "python .pichu/hooks/block_dangerous.py"
 timeout = 10
 
 [[hooks.PreToolUse]]
 matcher = "write_file|edit_file"
 [[hooks.PreToolUse.hooks]]
 type = "command"
-command = "python .PICHU/hooks/protect_files.py"
+command = "python .pichu/hooks/protect_files.py"
 timeout = 5
 """
 
@@ -264,7 +264,7 @@ class InitCommand(SlashCommand):
         project_root = config.cwd
         agents_file = project_root / "AGENTS.md"
         local_file = project_root / "AGENTS.local.md"
-        project_dir_name = os.environ.get("PICHU_PROJECT_DIR", ".PICHU")
+        project_dir_name = os.environ.get("PICHU_PROJECT_DIR", ".pichu")
         config_file_name = os.environ.get("PICHU_CONFIG_FILE", "config.toml")
         pichu_dir = project_root / project_dir_name
 
@@ -321,6 +321,7 @@ class InitCommand(SlashCommand):
         tui.console.print()
         tui.console.print("  [dim]Edit AGENTS.md to teach Pichu about your project.[/dim]")
         tui.console.print("  [dim]Use AGENTS.local.md for personal preferences (gitignored).[/dim]")
+        tui.console.print("  [dim]Run /login to configure provider and model.[/dim]")
         tui.console.print()
 
         return CommandResult()

@@ -128,8 +128,10 @@ class LoginCommand(SlashCommand):
             if not model:
                 return CommandResult(error="Model is required for custom providers.")
 
-        # ── 5. Optional Serper API key (skip with Enter) ────────
-        serper_key = console.input("  [bold]Serper API key [dim](optional, Enter to skip)[/dim]: [/bold]").strip()
+        # ── 5. Optional Serper API key for web search (skip with Enter) ────────
+        serper_key = console.input(
+            "  [bold]Serper API key [dim](optional, used for web search, Enter to skip)[/dim]: [/bold]"
+        ).strip()
 
         # ── 6. Save API keys → .env ────────────────────────────
         env_path = _find_env_file()

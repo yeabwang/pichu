@@ -77,14 +77,33 @@ class CLI:
             return await self._process_message(message)
 
     async def run_interactive(self) -> None:
+        model_display = self._config.model
+        if not self._config.llm.api_key:
+            model_display = "Not set (use /login to set your model)"
+
+        missing_bootstrap_files = self._get_missing_bootstrap_files()
+        tips = "/help for commands • /exit to quit"
+        if missing_bootstrap_files:
+            tips = f"{tips} • /init to generate project files"
+
         self.tui.print_welcome(
             banner=BANNER,
             info={
-                "Model": self._config.model,
-                "CWD": os.getcwd(),
+                "Model": model_display,
+                "CWD": str(self._config.cwd),
             },
-            tips="/help for commands \u2022 /exit to quit",
+            tips=tips,
         )
+        if missing_bootstrap_files:
+            missing = ", ".join(missing_bootstrap_files)
+            console.print(
+                f"[warning]Project setup incomplete:[/warning] missing {missing}. Run [command]/init[/command]."
+            )
+
+        if not self._config.llm.api_key:
+            console.print(
+                "[warning]Model not set:[/warning] use [command]/login[/command] to configure provider and model."
+            )
 
         # --- Resolve session to resume ---
         resume_id = self._resolve_resume_session()
@@ -150,6 +169,17 @@ class CLI:
                 except (KeyboardInterrupt, EOFError):
                     self.tui.print_goodbye("Session ended. Happy coding!")
                     break
+
+    def _get_missing_bootstrap_files(self) -> list[str]:
+        project_dir_name = os.environ.get("PICHU_PROJECT_DIR", ".pichu")
+        config_file_name = os.environ.get("PICHU_CONFIG_FILE", "config.toml")
+        project_root = Path(self._config.cwd)
+
+        expected_files = [
+            project_root / "AGENTS.md",
+            project_root / project_dir_name / config_file_name,
+        ]
+        return [str(path.relative_to(project_root)) for path in expected_files if not path.exists()]
 
     def _resolve_resume_session(self) -> str | None:
         """Determine which session to resume, if any."""

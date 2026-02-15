@@ -19,7 +19,7 @@ The commands module owns the `/command` system used in interactive sessions. It 
 
 1. `create_command_router(project_root=...)` builds registry + router.
 2. Built-in commands are registered first.
-3. Custom commands are loaded (global `~/.pichu/commands/`, then project `.PICHU/commands/` overrides).
+3. Custom commands are loaded (global `~/.pichu/commands/`, then project `.pichu/commands/` overrides).
 4. `CommandRouter.dispatch(...)` resolves command name or alias and executes the handler.
 
 ## Creating a New Built-in Command

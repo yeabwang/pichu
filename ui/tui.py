@@ -1155,7 +1155,7 @@ class TUI:
             self.console.print(
                 Panel(
                     "[dim]No hooks registered. Add hooks to "
-                    "[path].PICHU/config.toml[/path] under [code.inline]\\[hooks][/code.inline].[/dim]",
+                    "[path].pichu/config.toml[/path] under [code.inline]\\[hooks][/code.inline].[/dim]",
                     title="[info] Hooks[/info]",
                     border_style="border",
                     padding=(1, 2),

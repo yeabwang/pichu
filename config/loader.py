@@ -9,7 +9,6 @@ from pathlib import Path
 from typing import Any
 
 from dotenv import load_dotenv
-from platformdirs import user_config_dir
 
 from config.config import Config, set_config
 from utils.exceptions import ConfigError
@@ -19,7 +18,7 @@ load_dotenv()
 
 logger = logging.getLogger(__name__)
 
-PROJECT_DIR_NAME = os.environ.get("PICHU_PROJECT_DIR", ".PICHU")
+PROJECT_DIR_NAME = os.environ.get("PICHU_PROJECT_DIR", ".pichu")
 CONFIG_FILE_NAME = os.environ.get("PICHU_CONFIG_FILE", "config.toml")
 AGENT_MD_FILE_NAME = os.environ.get("PICHU_AGENT_FILE", "AGENT.md")
 APP_NAME = os.environ.get("PICHU_APP_NAME", "pichu")
@@ -41,15 +40,7 @@ def _env_bool(key: str) -> bool:
 
 def get_config_dir() -> Path:
     """Return the canonical system config directory."""
-    home_config = Path.home() / ".config" / APP_NAME
-    if home_config.exists():
-        return home_config
-
-    platform_config = Path(user_config_dir(APP_NAME))
-    if platform_config.exists():
-        return platform_config
-
-    return home_config
+    return Path.home() / f".{APP_NAME}"
 
 
 def get_system_config_path() -> Path:
@@ -157,9 +148,9 @@ def load_config(cwd: Path | None = None) -> Config:
 
     Merge order:
     1. Dataclass defaults
-    2. System config (`~/.config/<app>/config.toml`)
-    3. Project config (`<repo>/.PICHU/config.toml`)
-    4. System .env (`~/.config/<app>/.env` — API keys from /login)
+    2. System config (`~/.pichu/config.toml`)
+    3. Project config (`<repo>/.pichu/config.toml`)
+    4. System .env (`~/.pichu/.env` — API keys from /login)
     5. Project .env (cwd `.env` — loaded at import time)
     6. Environment overrides (`LLM_API_KEY`, `PICHU_DEBUG`)
 
@@ -313,19 +304,19 @@ def create_default_config_file(path: Path | None = None) -> Path:
 # matcher = "shell"
 # [[hooks.PreToolUse.hooks]]
 # type = "command"
-# command = "python .PICHU/hooks/block-dangerous.py"
+# command = "python .pichu/hooks/block-dangerous.py"
 # timeout = 10
 
 # [[hooks.PostToolUse]]
 # matcher = "write_file|edit_file"
 # [[hooks.PostToolUse.hooks]]
 # type = "command"
-# command = "python .PICHU/hooks/auto-format.py"
+# command = "python .pichu/hooks/auto-format.py"
 
 # [[hooks.Stop]]
 # [[hooks.Stop.hooks]]
 # type = "command"
-# command = "python .PICHU/hooks/verify-tests.py"
+# command = "python .pichu/hooks/verify-tests.py"
 # timeout = 120
 
 # [instructions]

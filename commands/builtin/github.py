@@ -180,7 +180,7 @@ class GithubCommand(SlashCommand):
         if normalized_mode is None:
             return CommandResult(error="Unknown setup mode. Use /github setup [remote|readonly|local].")
 
-        project_dir_name = os.environ.get("PICHU_PROJECT_DIR", ".PICHU")
+        project_dir_name = os.environ.get("PICHU_PROJECT_DIR", ".pichu")
         config_file_name = os.environ.get("PICHU_CONFIG_FILE", "config.toml")
 
         config_dir = config.cwd / project_dir_name

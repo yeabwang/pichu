@@ -24,7 +24,7 @@ The safety module is the central guardrail layer for mutating tool execution and
 
 ## Configuration
 
-Safety settings live in `.PICHU/config.toml`:
+Safety settings live in `.pichu/config.toml`:
 
 ```toml
 [safety.sandbox]

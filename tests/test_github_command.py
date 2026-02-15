@@ -27,7 +27,7 @@ class _TUI:
 async def test_github_setup_creates_mcp_server_config(tmp_path, monkeypatch):
     from tomlkit import parse
 
-    monkeypatch.setenv("PICHU_PROJECT_DIR", ".PICHU")
+    monkeypatch.setenv("PICHU_PROJECT_DIR", ".pichu")
     monkeypatch.setenv("PICHU_CONFIG_FILE", "config.toml")
 
     command = GithubCommand()
@@ -38,7 +38,7 @@ async def test_github_setup_creates_mcp_server_config(tmp_path, monkeypatch):
 
     assert result.error is None
 
-    config_path = tmp_path / ".PICHU" / "config.toml"
+    config_path = tmp_path / ".pichu" / "config.toml"
     assert config_path.exists()
 
     parsed = parse(config_path.read_text(encoding="utf-8"))
@@ -52,7 +52,7 @@ async def test_github_setup_creates_mcp_server_config(tmp_path, monkeypatch):
 async def test_github_setup_is_idempotent(tmp_path, monkeypatch):
     from tomlkit import parse
 
-    monkeypatch.setenv("PICHU_PROJECT_DIR", ".PICHU")
+    monkeypatch.setenv("PICHU_PROJECT_DIR", ".pichu")
     monkeypatch.setenv("PICHU_CONFIG_FILE", "config.toml")
 
     command = GithubCommand()
@@ -65,7 +65,7 @@ async def test_github_setup_is_idempotent(tmp_path, monkeypatch):
     assert first.error is None
     assert second.error is None
 
-    parsed = parse((tmp_path / ".PICHU" / "config.toml").read_text(encoding="utf-8"))
+    parsed = parse((tmp_path / ".pichu" / "config.toml").read_text(encoding="utf-8"))
     assert list(parsed["mcp_servers"].keys()).count("github") == 1
 
 
@@ -73,7 +73,7 @@ async def test_github_setup_is_idempotent(tmp_path, monkeypatch):
 async def test_github_setup_local_mode_creates_docker_profile(tmp_path, monkeypatch):
     from tomlkit import parse
 
-    monkeypatch.setenv("PICHU_PROJECT_DIR", ".PICHU")
+    monkeypatch.setenv("PICHU_PROJECT_DIR", ".pichu")
     monkeypatch.setenv("PICHU_CONFIG_FILE", "config.toml")
 
     command = GithubCommand()
@@ -83,7 +83,7 @@ async def test_github_setup_local_mode_creates_docker_profile(tmp_path, monkeypa
     result = await command.execute("setup local", session=None, tui=tui, config=config)
     assert result.error is None
 
-    parsed = parse((tmp_path / ".PICHU" / "config.toml").read_text(encoding="utf-8"))
+    parsed = parse((tmp_path / ".pichu" / "config.toml").read_text(encoding="utf-8"))
     github = parsed["mcp_servers"]["github"]
     assert github["command"] == "docker"
     assert list(github["args"]) == [

@@ -74,7 +74,7 @@ def test_load_config_merges_system_project_and_env_sources(tmp_path, monkeypatch
     )
 
     project_root = tmp_path / "repo"
-    project_cfg_dir = project_root / ".PICHU"
+    project_cfg_dir = project_root / ".pichu"
     project_cfg_dir.mkdir(parents=True)
     (project_cfg_dir / "config.toml").write_text(
         ('[llm]\nmodel = "project-model"\n\n[limits]\ncontext_window = 200\n\n[approval]\npolicy = "auto_edit"\n'),

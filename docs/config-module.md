@@ -46,10 +46,10 @@ from config import Config, load_config, get_config, set_config
 `load_config(...)` applies configuration in this order (later overrides earlier):
 
 1. Dataclass defaults
-2. System config — `~/.config/pichu/config.toml`
-3. Project config — `.PICHU/config.toml` (searched upward from cwd)
+2. System config — `~/.pichu/config.toml`
+3. Project config — `.pichu/config.toml` (searched upward from cwd)
 4. Environment overrides — `LLM_API_KEY`, `LLM_BASE_URL`, `LLM_MODEL`, `PICHU_DEBUG`
-5. Developer instructions — `.PICHU/AGENT.md`
+5. Developer instructions — `.pichu/AGENT.md`
 
 ## Typed Section Normalization
 

@@ -45,7 +45,7 @@ from hooks import HookEngine, HookEvent, HookHandler, HookDecision
 
 ## Configuration
 
-Hooks are configured in `.PICHU/config.toml`:
+Hooks are configured in `.pichu/config.toml`:
 
 ```toml
 [hooks.pre_tool_use.shell]

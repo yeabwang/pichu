@@ -654,7 +654,7 @@ class WebCacheConfig:
 
     enabled: bool = True
     mode: str = "cached"  # live, cached, offline
-    cache_dir: str = ".PICHU/cache"
+    cache_dir: str = ".pichu/cache"
     search_ttl_hours: float = 24.0  # Search results expire after 24h
     fetch_ttl_hours: float = 168.0  # Fetched pages expire after 7 days
     max_size_mb: float = 100.0  # Auto-prune old entries
@@ -894,7 +894,7 @@ class HooksConfig:
         matcher = "shell"
         [[hooks.PreToolUse.hooks]]
         type = "command"
-        command = ".PICHU/hooks/block-dangerous.py"
+        command = ".pichu/hooks/block-dangerous.py"
         timeout = 10
     """
 

@@ -24,6 +24,6 @@ venv/
 logs/
 # Pichu local config
 AGENTS.local.md
-.PICHU/cache
-.PICHU/memory
-.PICHU/config.toml
+.pichu/cache
+.pichu/memory
+.pichu/config.toml

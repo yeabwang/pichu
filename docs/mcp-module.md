@@ -30,7 +30,7 @@ from tools.mcp import MCPManager, MCPClient, MCPTool, MCPServerStatus
 
 ## Configuration
 
-MCP servers are configured in `.PICHU/config.toml`:
+MCP servers are configured in `.pichu/config.toml`:
 
 ```toml
 [mcp_servers.github]

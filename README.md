@@ -53,10 +53,11 @@ uv pip install -r requirements.txt && uv pip install -e .
 
 ```bash
 pichu          # start interactive mode
+/init          # generate AGENTS.md and .pichu/config.toml in the current project
 /login         # configure API key, provider, and model interactively
 ```
 
-> `/login` writes credentials to `~/.config/pichu/config.toml` and applies them to the running session immediately. You can also set `LLM_API_KEY`, `LLM_BASE_URL`, and `LLM_MODEL` as environment variables or edit the config file directly.
+> `/login` writes credentials to `~/.pichu/config.toml` and applies them to the running session immediately. Until you configure credentials, startup shows `Model: Not set (use /login to set your model)`.
 
 ### Configure
 
@@ -170,11 +171,11 @@ The agent has access to 16 built-in tools:
 Configuration is loaded in this order (later sources override earlier ones):
 
 1. **Code defaults** — sensible baseline values
-2. **System config** — `~/.config/pichu/config.toml`
-3. **Project config** — `.PICHU/config.toml` (searched upward from cwd)
+2. **System config** — `~/.pichu/config.toml`
+3. **Project config** — `.pichu/config.toml` (searched upward from cwd)
 4. **Environment variables** — `LLM_API_KEY`, `LLM_BASE_URL`, `LLM_MODEL`, `PICHU_DEBUG`, etc.
 
-Behavior instructions for the agent are loaded from `.PICHU/AGENT.md`.
+Behavior instructions for the agent are loaded from `.pichu/AGENT.md`.
 
 ### Environment Variables
 
@@ -185,7 +186,7 @@ Behavior instructions for the agent are loaded from `.PICHU/AGENT.md`.
 | `LLM_MODEL`         | No       | Model identifier                                   |
 | `SERPER_API_KEY`    | No       | API key for web search (Serper)                    |
 | `PICHU_DEBUG`       | No       | Enable debug logging (`true`/`false`)          |
-| `PICHU_PROJECT_DIR` | No       | Project config directory name (default:`.PICHU`) |
+| `PICHU_PROJECT_DIR` | No       | Project config directory name (default:`.pichu`) |
 | `PICHU_CONFIG_FILE` | No       | Config file name (default:`config.toml`)         |
 
 ## Development
@@ -216,7 +217,7 @@ uv run pytest -q
 
 ### Project Bootstrap
 
-Inside a Pichu session, run `/init` to generate a full `.PICHU/config.toml` baseline and project guidance files.
+Inside a Pichu session, run `/init` to generate a full `.pichu/config.toml` baseline and project guidance files. If these files are missing, startup now prompts you to run `/init`.
 
 ### Build
 

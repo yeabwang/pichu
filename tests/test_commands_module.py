@@ -212,7 +212,7 @@ async def test_init_writes_full_project_config_without_login_managed_model_setti
     result = await command.execute("", session=object(), tui=_ConsoleTUI(), config=_DummyConfig(cwd=tmp_path))
     assert result.error is None
 
-    config_path = tmp_path / ".PICHU" / "config.toml"
+    config_path = tmp_path / ".pichu" / "config.toml"
     assert config_path.exists()
 
     config_text = config_path.read_text(encoding="utf-8")
