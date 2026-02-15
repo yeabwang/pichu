@@ -62,9 +62,7 @@ def create_retry_decorator(config: RetryConfig, on_retry: RetryCallback | None =
             max=config.max_wait,
         ),
         stop=stop_after_attempt(config.max_attempts),
-        retry=retry_if_exception_type(
-            (RateLimitError, APIConnectionError, APITimeoutError, httpx.ReadTimeout)
-        ),
+        retry=retry_if_exception_type((RateLimitError, APIConnectionError, APITimeoutError, httpx.ReadTimeout)),
         before_sleep=_before_sleep,
         reraise=True,
     )
@@ -77,7 +75,7 @@ class LLMClient:
         self._client: AsyncOpenAI | None = None
         self._config = config or get_config().llm
         self._retry_callbacks: list[RetryCallback] = []
-        self._create_completion = create_retry_decorator(
+        self._create_completion = create_retry_decorator(  # type: ignore[method-assign]
             self._config.retry,
             on_retry=self._notify_retry,
         )(self._create_completion)
@@ -91,9 +89,7 @@ class LLMClient:
         if callback in self._retry_callbacks:
             self._retry_callbacks.remove(callback)
 
-    def _notify_retry(
-        self, attempt: int, max_attempts: int, error: str, wait_seconds: float
-    ) -> None:
+    def _notify_retry(self, attempt: int, max_attempts: int, error: str, wait_seconds: float) -> None:
         for cb in self._retry_callbacks:
             try:
                 cb(attempt, max_attempts, error, wait_seconds)
@@ -123,20 +119,14 @@ class LLMClient:
             await self._client.close()
             self._client = None
 
-    def count_tokens(
-        self, messages: list[dict[str, Any]], model: str | None = None
-    ) -> int:
+    def count_tokens(self, messages: list[dict[str, Any]], model: str | None = None) -> int:
         """Estimate prompt token count for OpenAI-style message payloads."""
         model = model or self._config.model
         total = 0
         for msg in messages:
             content = msg.get("content", "")
             if content:
-                serialized = (
-                    content
-                    if isinstance(content, str)
-                    else json.dumps(content, ensure_ascii=False)
-                )
+                serialized = content if isinstance(content, str) else json.dumps(content, ensure_ascii=False)
                 total += count_text_tokens(serialized, model)
 
             tool_calls = msg.get("tool_calls", [])
@@ -245,9 +235,7 @@ class LLMClient:
             logger.error(f"API error (non-retryable): {e}")
             yield StreamEvent.from_error(str(e))
 
-    async def _stream_response(
-        self, client: AsyncOpenAI, kwargs: dict[str, Any]
-    ) -> AsyncGenerator[StreamEvent, None]:
+    async def _stream_response(self, client: AsyncOpenAI, kwargs: dict[str, Any]) -> AsyncGenerator[StreamEvent, None]:
         usage: TokenUsage | None = None
         finish_reason: str | None = None
         tool_calls: dict[int, dict[str, Any]] = {}
@@ -296,9 +284,7 @@ class LLMClient:
                                 )
                                 tool_calls[idx]["started"] = True
                         if tool_call_delta.function.arguments:
-                            tool_calls[idx][
-                                "arguments"
-                            ] += tool_call_delta.function.arguments
+                            tool_calls[idx]["arguments"] += tool_call_delta.function.arguments
                             yield StreamEvent(
                                 type=StreamEventType.TOOL_CALL_DELTA,
                                 tool_call_delta=ToolCallDelta(
@@ -343,9 +329,7 @@ class LLMClient:
                         "id": tool_call.id or "",
                         "name": tool_call.function.name if tool_call.function else "",
                         "arguments": parse_tool_call_arguments(
-                            tool_call.function.arguments
-                            if tool_call.function and tool_call.function.arguments
-                            else ""
+                            tool_call.function.arguments if tool_call.function and tool_call.function.arguments else ""
                         ),
                     }
                 )
