@@ -4,12 +4,11 @@ from __future__ import annotations
 
 import json
 import logging
-from typing import AsyncGenerator
+from typing import TYPE_CHECKING, AsyncGenerator
 
 from agent.events import AgentEvent, AgentEventType
 from agent.session import Session
-from client.models import StreamEventType, ToolCall, ToolResultMessage
-from client.models import TokenUsage
+from client.models import StreamEventType, TokenUsage, ToolCall, ToolResultMessage
 from config import Config
 from hooks.types import HookEvent
 from utils.loop_detector import (
@@ -21,6 +20,9 @@ from utils.loop_detector import (
     _hash_text,
 )
 from utils.text import count_tokens
+
+if TYPE_CHECKING:
+    from context.context_manager import ContextManager
 
 logger = logging.getLogger(__name__)
 
@@ -62,6 +64,13 @@ class Agent:
             raise RuntimeError("Session is not initialized.")
         return self.session
 
+    def _require_context(self) -> "ContextManager":
+        """Return the active context manager or raise."""
+        session = self._require_session()
+        if session.context_manager is None:
+            raise RuntimeError("Context manager is not initialized.")
+        return session.context_manager
+
     def _apply_usage(self, usage: TokenUsage | None) -> None:
         """Apply token usage statistics to session context state."""
         if not usage:
@@ -79,16 +88,13 @@ class Agent:
         session = self._require_session()
         if not session.context_manager:
             return None
-        tool_schema_tokens = (
-            count_tokens(json.dumps(tools_schema), self._config.model)
-            if tools_schema
-            else 0
-        )
+        tool_schema_tokens = count_tokens(json.dumps(tools_schema), self._config.model) if tools_schema else 0
         return session.context_manager.get_context_stats(tool_schema_tokens)
 
     async def run(self, prompt: str) -> AsyncGenerator[AgentEvent, None]:
         """Run one user prompt through the agent loop and emit runtime events."""
         session = self._require_session()
+        ctx = self._require_context()
         self._loop_detector.unsuppress()
         yield AgentEvent.from_start(prompt)
 
@@ -99,9 +105,7 @@ class Agent:
                 extra={"prompt": prompt},
             )
             if submit_result.should_block:
-                reason = (
-                    submit_result.blocking_reason or "Blocked by UserPromptSubmit hook"
-                )
+                reason = submit_result.blocking_reason or "Blocked by UserPromptSubmit hook"
                 yield AgentEvent.from_error(f"Prompt blocked: {reason}")
                 yield AgentEvent.from_end(None)
                 return
@@ -110,9 +114,9 @@ class Agent:
                 return
             extra_ctx = submit_result.collect_additional_context()
             if extra_ctx:
-                session.context_manager.get_user_message(f"[Hook context: {extra_ctx}]")
+                ctx.get_user_message(f"[Hook context: {extra_ctx}]")
 
-        session.context_manager.get_user_message(prompt)
+        ctx.get_user_message(prompt)
         session.save_message(role="user", content=prompt)
 
         final_response: str | None = None
@@ -130,9 +134,7 @@ class Agent:
             if stop_result.should_block and not hook_engine.stop_hook_active:
                 hook_engine.stop_hook_active = True
                 reason = stop_result.blocking_reason or "Hook requires continued work"
-                session.context_manager.get_user_message(
-                    f"[Hook feedback: {reason}. Continue working.]"
-                )
+                ctx.get_user_message(f"[Hook feedback: {reason}. Continue working.]")
                 async for event in self._agentic_loop(reason):
                     yield event
                     if event.type == AgentEventType.TEXT_COMPLETE:
@@ -143,14 +145,13 @@ class Agent:
     async def _agentic_loop(self, prompt: str) -> AsyncGenerator[AgentEvent, None]:
         """Execute iterative LLM/tool turns until the run terminates."""
         session = self._require_session()
+        ctx = self._require_context()
         max_turns = self._config.limits.max_turns
 
         cp_mgr = session.checkpoint_manager
         if cp_mgr:
             next_turn = session.turn_count + 1
-            msg_idx = (
-                session.context_manager.message_count if session.context_manager else 0
-            )
+            msg_idx = ctx.message_count
             cp_mgr.begin_turn(next_turn, prompt[:200], msg_idx)
 
         for _ in range(max_turns):
@@ -160,7 +161,7 @@ class Agent:
                 logger.debug(f"=== Turn {current_turn}/{max_turns} ===")
 
             response_text = ""
-            if session.context_manager.needs_compression():
+            if ctx.needs_compression():
                 hook_engine = session.hook_engine
                 if hook_engine and hook_engine.has_hooks:
                     await hook_engine.fire(
@@ -169,24 +170,24 @@ class Agent:
                         extra={"trigger": "auto", "custom_instructions": ""},
                     )
 
-                summary, usage, original_tokens = (
-                    await session.chat_compactor.compact_context(
-                        session.context_manager,
-                        max_tokens=int(self._config.limits.context_window * 0.5),
-                    )
+                (
+                    summary,
+                    compact_usage,
+                    original_tokens,
+                ) = await session.chat_compactor.compact_context(
+                    ctx,
+                    max_tokens=int(self._config.limits.context_window * 0.5),
                 )
                 if summary:
-                    session.context_manager.replace_with_summary(summary)
-                    self._apply_usage(usage)
+                    ctx.replace_with_summary(summary)
+                    self._apply_usage(compact_usage)
                     yield AgentEvent.context_compacted(
                         original_tokens=original_tokens,
-                        new_tokens=usage.total_tokens if usage else 0,
-                        summary_tokens=usage.completion_tokens if usage else 0,
+                        new_tokens=compact_usage.total_tokens if compact_usage else 0,
+                        summary_tokens=compact_usage.completion_tokens if compact_usage else 0,
                     )
 
-            pruned_count, tokens_saved = (
-                session.context_manager.prune_tool_outputs_with_stats()
-            )
+            pruned_count, tokens_saved = ctx.prune_tool_outputs_with_stats()
             if pruned_count > 0:
                 yield AgentEvent.context_pruned(
                     pruned_count=pruned_count,
@@ -206,15 +207,13 @@ class Agent:
                 error: str,
                 wait_seconds: float,
             ) -> None:
-                retry_events.append(
-                    AgentEvent.llm_retry(attempt, max_attempts, error, wait_seconds)
-                )
+                retry_events.append(AgentEvent.llm_retry(attempt, max_attempts, error, wait_seconds))
 
             session.client.on_retry(_on_retry)
             try:
                 yield AgentEvent.thinking_start(current_turn)
                 async for event in session.client.chat_completion(
-                    messages=session.context_manager.get_messages(),
+                    messages=ctx.get_messages(),
                     tools=tools_schema if tools_schema else None,
                     stream=True,
                 ):
@@ -234,9 +233,7 @@ class Agent:
                         if event.tool_call:
                             tool_calls.append(event.tool_call)
                     elif event.type == StreamEventType.ERROR:
-                        yield AgentEvent.from_error(
-                            event.error or "Unknown error occurred"
-                        )
+                        yield AgentEvent.from_error(event.error or "Unknown error occurred")
                     elif event.type == StreamEventType.MESSAGE_COMPLETE:
                         usage = event.usage
 
@@ -248,7 +245,7 @@ class Agent:
             if not got_any_event:
                 yield AgentEvent.thinking_end(current_turn)
 
-            session.context_manager.get_agent_message(
+            ctx.get_agent_message(
                 response_text or None,
                 (
                     [
@@ -351,7 +348,7 @@ class Agent:
                 )
 
             for tool_result in tool_call_results:
-                session.context_manager.add_tool_result(
+                ctx.add_tool_result(
                     tool_result.tool_call_id,
                     tool_result.content,
                 )
@@ -401,7 +398,7 @@ class Agent:
                         cp_mgr.commit_turn()
                     return
                 elif loop_result.action == LoopAction.WARN_AND_NUDGE:
-                    session.context_manager.get_user_message(loop_result.nudge_message)
+                    ctx.get_user_message(loop_result.nudge_message)
 
     async def __aenter__(self) -> Agent:
         """Initialize async session resources and fire startup hooks."""
@@ -419,10 +416,9 @@ class Agent:
                 },
             )
             extra_ctx = start_result.collect_additional_context()
-            if extra_ctx and session.context_manager:
-                session.context_manager.get_user_message(
-                    f"[Session hook context: {extra_ctx}]"
-                )
+            ctx = session.context_manager
+            if extra_ctx and ctx is not None:
+                ctx.get_user_message(f"[Session hook context: {extra_ctx}]")
 
         return self
 
