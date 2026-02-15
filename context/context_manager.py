@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Any, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from client.models import TokenUsage
 from config import Config
@@ -51,11 +51,7 @@ class MessageItem:
     def from_dict(cls, data: dict[str, Any]) -> MessageItem:
         """Create a message item from serialized storage payload."""
         pruned_raw = data.get("pruned_at")
-        pruned_at = (
-            datetime.fromisoformat(pruned_raw)
-            if isinstance(pruned_raw, str) and pruned_raw
-            else None
-        )
+        pruned_at = datetime.fromisoformat(pruned_raw) if isinstance(pruned_raw, str) and pruned_raw else None
         return cls(
             role=data["role"],
             content=data.get("content", "") or "",
@@ -106,9 +102,7 @@ class ContextManager:
             )
         )
 
-    def get_agent_message(
-        self, content: str | None, tool_calls: list[dict[str, Any]] | None = None
-    ) -> MessageItem:
+    def get_agent_message(self, content: str | None, tool_calls: list[dict[str, Any]] | None = None) -> MessageItem:
         """Append an assistant message to context history."""
         content = content or ""
         return self._append_message(
@@ -170,11 +164,7 @@ class ContextManager:
         """Return current prompt token estimate based on latest usage snapshot."""
         if self._latest_usage.total_tokens > 0:
             return self._latest_usage.total_tokens
-        system_tokens = (
-            self._count_message_tokens(self._system_prompt)
-            if self._system_prompt
-            else 0
-        )
+        system_tokens = self._count_message_tokens(self._system_prompt) if self._system_prompt else 0
         return system_tokens + self.get_message_token_total()
 
     def get_context_stats(self, tool_schema_tokens: int = 0) -> dict:
@@ -182,11 +172,7 @@ class ContextManager:
         context_limit = self._config.limits.context_window
         total_tokens = self.get_current_token_count()
 
-        system_tokens = (
-            self._count_message_tokens(self._system_prompt)
-            if self._system_prompt
-            else 0
-        )
+        system_tokens = self._count_message_tokens(self._system_prompt) if self._system_prompt else 0
         user_tokens = 0
         assistant_tokens = 0
         tool_result_tokens = 0
