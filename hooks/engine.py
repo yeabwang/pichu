@@ -72,7 +72,10 @@ class HookEngine:
 
         # Route all hooks.* logging to logs/hooks/hooks.log
         if self._cwd:
-            _setup_hooks_file_logger(self._cwd)
+            try:
+                _setup_hooks_file_logger(self._cwd)
+            except OSError as e:
+                logger.debug("Skipping hooks file logger setup for cwd '%s': %s", self._cwd, e)
 
     # ------------------------------------------------------------------
     # Loading
