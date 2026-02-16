@@ -38,7 +38,7 @@ class MyCommand(SlashCommand):
         return CommandResult(output="Done!")
 ```
 
-Then register it in `commands/builtin/__init__.py` by adding `MyCommand` to the `BUILTIN_COMMANDS` tuple.
+Built-in commands are discovered automatically from `commands/builtin/*.py` when they subclass `SlashCommand`.
 
 ## Engineering Guarantees
 

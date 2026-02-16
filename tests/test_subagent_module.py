@@ -11,11 +11,11 @@ import pytest
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from config import Config, LLMConfig
+from subagents.loader import SubAgentLoader
+from subagents.types import SubAgentConfig, SubAgentResult
 from tools.base import Tool, ToolInvocation, ToolKind, ToolResult
 from tools.builtin.subagent import SubAgentTool
 from tools.registry import ToolRegistry
-from utils.subagent_loader import SubAgentLoader
-from utils.subagent_types import SubAgentConfig, SubAgentResult
 
 
 class _DummyTool(Tool):

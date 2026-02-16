@@ -1,6 +1,6 @@
 .PHONY: dev format lint typecheck test test-cov build clean
 
-MYPY_TARGETS = src/agent/ src/client/ src/commands/ src/config/ src/context/ src/hooks/ src/safety/ sub_agents/ src/tools/ src/ui/ src/utils/ main.py
+MYPY_TARGETS = src/agent/ src/client/ src/commands/ src/config/ src/context/ src/hooks/ src/safety/ src/subagents/ src/tools/ src/ui/ src/utils/ main.py
 
 dev:
 	uv sync --extra dev

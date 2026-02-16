@@ -12,9 +12,9 @@ from typing import TYPE_CHECKING, Any, Callable
 
 from pydantic import BaseModel, Field
 
+from subagents.transcript import SubAgentTranscript
+from subagents.types import SubAgentConfig, SubAgentResult
 from tools.base import Tool, ToolInvocation, ToolKind, ToolResult
-from utils.subagent_transcript import SubAgentTranscript
-from utils.subagent_types import SubAgentConfig, SubAgentResult
 
 if TYPE_CHECKING:
     from config import Config

@@ -106,12 +106,18 @@ class AgentsCommand(SlashCommand):
         for agent in agents:
             model = agent.model if agent.model else "[dim]inherited[/dim]"
             tools = str(len(agent.tools)) if agent.tools else "[dim]all[/dim]"
-            source = "project" if agent.source_path and "sub_agents" in str(agent.source_path) else "user"
-            # Determine if project-level or user-level
+            source = "bundled"
+            # Determine if bundled, project-level, or user-level
             if agent.source_path:
                 proj_path = loader.project_agents_path
+                user_path = loader.user_agents_path
+                bundled_path = loader.bundled_agents_path
                 if proj_path and str(agent.source_path).startswith(str(proj_path)):
                     source = "project"
+                elif str(agent.source_path).startswith(str(user_path)):
+                    source = "user"
+                elif str(agent.source_path).startswith(str(bundled_path)):
+                    source = "bundled"
                 else:
                     source = "user"
 

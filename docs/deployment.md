@@ -111,7 +111,7 @@ The pipeline runs on every push and pull request:
 
 1. **Checkout** — `actions/checkout@v4`
 2. **Install uv** — `astral-sh/setup-uv@v5`
-3. **Setup Python** — 3.13 on `ubuntu-latest`
+3. **Setup Python** — 3.11+ on `ubuntu-latest`
 4. **Install** — `uv pip install --system -e .[dev]`
 5. **Test** — `pytest -q`
 6. **Build** — `python -m build`

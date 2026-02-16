@@ -29,7 +29,7 @@
 
 ### 1) Prerequisites
 
-- Python 3.13+
+- Python 3.11+
 - [uv](https://docs.astral.sh/uv/) (recommended)
 - An LLM API key (for example, [OpenRouter](https://openrouter.ai/))
 
@@ -174,6 +174,21 @@ Configuration is loaded in this order (later sources override earlier ones):
 
 Behavior instructions for the agent are loaded from `.pichu/AGENT.md`.
 
+## Troubleshooting
+
+When something goes wrong, use this recovery flow:
+
+1. Run `/doctor` for a full installation + config health check.
+2. Run `/status` to verify model/provider/session state.
+3. Run `/debug` for runtime diagnostics in the current session.
+4. Check logs in `logs/app/` and `logs/security/audit.log` for concrete errors.
+
+Common cases:
+
+- **API failures (401/403/5xx):** re-run `/login`, then confirm `LLM_API_KEY`, `LLM_BASE_URL`, and `LLM_MODEL`.
+- **MCP connection issues:** run `/mcp` to inspect configured servers and connection state.
+- **Sandbox violations:** review `[safety.sandbox]` in `.pichu/config.toml` and allowed path settings.
+
 ### Environment Variables
 
 | Variable              | Required | Description                                        |
@@ -279,10 +294,10 @@ pichu/
 │   ├── hooks/       Lifecycle hook framework
 │   ├── prompts/     System prompt construction
 │   ├── safety/      Approval policies, sandbox, and command risk checks
+│   ├── subagents/   Sub-agent loader/types/transcripts + bundled specs
 │   ├── tools/       Built-in and MCP tool implementations
 │   ├── ui/          Terminal rendering (Rich-based TUI)
 │   └── utils/       Sessions, memory, tasks, web helpers, and more
-├── sub_agents/      Sub-agent markdown definitions
 ├── tests/           Test suite (pytest)
 └── docs/            Module-level developer documentation
 ```

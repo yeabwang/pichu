@@ -1,65 +1,35 @@
 """Builtin slash commands registration."""
 
-from commands.base import CommandRegistry, SlashCommand
-from commands.builtin.agents import AgentsCommand
-from commands.builtin.clear import ClearCommand
-from commands.builtin.compact import CompactCommand
-from commands.builtin.config_cmd import ConfigCommand
-from commands.builtin.context import ContextCommand
-from commands.builtin.copy_cmd import CopyCommand
-from commands.builtin.cost import CostCommand
-from commands.builtin.debug import DebugCommand
-from commands.builtin.doctor import DoctorCommand
-from commands.builtin.exit import ExitCommand
-from commands.builtin.export import ExportCommand
-from commands.builtin.fork import ForkCommand
-from commands.builtin.github import GithubCommand
-from commands.builtin.help import HelpCommand
-from commands.builtin.hooks import HooksCommand
-from commands.builtin.init import InitCommand
-from commands.builtin.login import LoginCommand
-from commands.builtin.mcp import McpCommand
-from commands.builtin.memory import MemoryCommand
-from commands.builtin.model import ModelCommand
-from commands.builtin.permissions import PermissionsCommand
-from commands.builtin.rename import RenameCommand
-from commands.builtin.rewind import RewindCommand
-from commands.builtin.sessions import SessionsCommand
-from commands.builtin.stats import StatsCommand
-from commands.builtin.status import StatusCommand
-from commands.builtin.tasks import TasksCommand
-from commands.builtin.theme import ThemeCommand
+from __future__ import annotations
 
-BUILTIN_COMMANDS: tuple[type[SlashCommand], ...] = (
-    HelpCommand,
-    ExitCommand,
-    ClearCommand,
-    CompactCommand,
-    CostCommand,
-    ContextCommand,
-    StatsCommand,
-    StatusCommand,
-    ModelCommand,
-    ThemeCommand,
-    CopyCommand,
-    ExportCommand,
-    ConfigCommand,
-    MemoryCommand,
-    InitCommand,
-    McpCommand,
-    GithubCommand,
-    DoctorCommand,
-    DebugCommand,
-    PermissionsCommand,
-    AgentsCommand,
-    TasksCommand,
-    HooksCommand,
-    SessionsCommand,
-    RewindCommand,
-    ForkCommand,
-    RenameCommand,
-    LoginCommand,
-)
+import importlib
+import inspect
+import pkgutil
+from functools import lru_cache
+
+from commands.base import CommandRegistry, SlashCommand
+
+
+@lru_cache(maxsize=1)
+def _discover_builtin_command_types() -> tuple[type[SlashCommand], ...]:
+    """Discover all SlashCommand subclasses from builtin command modules."""
+    command_types: list[type[SlashCommand]] = []
+    for module_info in sorted(pkgutil.iter_modules(__path__), key=lambda item: item.name):
+        if module_info.name.startswith("_"):
+            continue
+
+        module = importlib.import_module(f"{__name__}.{module_info.name}")
+        for _, cls in inspect.getmembers(module, inspect.isclass):
+            if cls is SlashCommand or not issubclass(cls, SlashCommand):
+                continue
+            if cls.__module__ != module.__name__:
+                continue
+            command_types.append(cls)
+
+    return tuple(sorted(command_types, key=lambda cls: cls.__name__))
+
+
+BUILTIN_COMMANDS: tuple[type[SlashCommand], ...] = _discover_builtin_command_types()
 
 
 def build_builtin_commands() -> list[SlashCommand]:
