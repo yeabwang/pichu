@@ -18,3 +18,9 @@ docs/
 .env
 .env.*
 !.env.example
+AGENTS.local.md
+.pichu/cache
+.pichu/memory
+.pichu/config.toml
+AGENTS.md
+.claude

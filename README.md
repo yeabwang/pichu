@@ -8,15 +8,18 @@
 
 ## Features
 
-- **Rich TUI** — streaming responses, tool activity panels, and context tracking
-- **Agentic tool loop** — read, write, edit, shell, search, web, tasks, and sub-agent delegation
-- **Slash commands** — 28 built-in commands for runtime control (`/help`, `/status`, `/login`, `/doctor`, `/sessions`, and more)
-- **Approval & safety** — layered permission policies, filesystem sandboxing, and command risk classification
-- **Sessions** — persistence, checkpoints, rewind, fork, and resume across runs
-- **Hooks** — custom automation before/after tool calls and lifecycle events
-- **MCP integration** — connect external MCP tool servers alongside built-in tools
-- **Memory** — project-scoped memory that persists across sessions
-- **Sub-agents** — delegate scoped work to specialized agents with isolated context
+- **Composable tooling stack** — file editing/search, shell, web research, task tools, and memory tools
+- **Context management** — token-aware context windows with compaction, tool-output pruning, and usage tracking
+- **MCP integration** — connect and manage external MCP servers, with namespaced MCP tools available alongside built-ins
+- **Sub-agent orchestration** — delegate work to specialized sub-agents with isolated context, scoped tool access, and resume/background support
+- **28 slash commands** — operational control for config, diagnostics, sessions, permissions, hooks, tasks, MCP, GitHub setup, and more
+- **Web tooling with guardrails** — structured search/fetch, citation-style outputs, cache modes, rate limits, provenance checks, and PDF extraction
+- **Session system** — JSONL transcript persistence, metadata indexing, resume/continue, checkpoints, rewind, and forked sessions
+- **Memory system** — global + project memory stores, AGENTS hierarchy loading, and searchable categorized memories
+- **Task orchestration** — persistent task lists with status transitions, dependency graphs, ownership, and cross-session coordination
+- **Hooks automation** — lifecycle hooks (`PreToolUse`, `PostToolUse`, `Stop`, `PreCompact`, `SubagentStop`, etc.) with matcher-based routing
+- **Safety by default** — approval policies, rule-based permission engine, dangerous-command detection, and filesystem sandbox enforcement
+- **Reliability controls** — LLM retry/backoff, loop detection, context compaction, tool-output pruning, and runtime/audit logging
 
 ## Quick Start
 
@@ -27,16 +30,6 @@
 - An LLM API key (for example, [OpenRouter](https://openrouter.ai/))
 
 ### 2) Install
-
-```bash
-git clone https://github.com/yeabwang/pichu.git
-cd pichu
-
-uv venv
-uv pip install -e .[dev]
-```
-
-#### End-user install options:
 
 ```bash
 # uv tool install (recommended for end users)
@@ -191,14 +184,26 @@ Behavior instructions for the agent are loaded from `.pichu/AGENT.md`.
 
 ## Development
 
-Development setup is covered in [Quick Start (Dev First)](#quick-start-dev-first).
+### Install
 
-If you prefer requirements files instead of extras:
+Option A (recommended): use uv project sync + Makefile workflow
 
 ```bash
+git clone https://github.com/yeabwang/pichu.git
+cd pichu
+
+uv sync --extra dev
+uv run pre-commit install
+```
+
+Option B: requirements-based install
+
+```bash
+git clone https://github.com/yeabwang/pichu.git
+cd pichu
+
 uv venv
-uv pip install -r requirements-dev.txt
-uv pip install -e .
+uv pip install -r requirements-dev.txt && uv pip install -e .
 ```
 
 ### Requirements Files
@@ -207,6 +212,22 @@ uv pip install -e .
 | ------------------------ | ----------------------------------------- |
 | `requirements.txt`     | Runtime dependencies (core + web tooling) |
 | `requirements-dev.txt` | Core + testing, linting, and build tools  |
+
+Use the Makefile for common development workflows:
+
+```bash
+# Install dev dependencies + pre-commit hooks
+make dev
+
+# Common commands
+make format      # auto-format with ruff
+make lint        # lint with ruff
+make typecheck   # type-check with mypy
+make test        # run tests
+make test-cov    # tests + coverage report
+make build       # build package
+make clean       # remove caches & artifacts
+```
 
 ### Run Tests
 
@@ -221,7 +242,8 @@ Inside a Pichu session, run `/init` to generate a full `.pichu/config.toml` base
 ### Build
 
 ```bash
-uv run python -m build       # produces sdist + wheel in dist/
+make build                    # produces sdist + wheel in dist/
+# or: uv build
 ```
 
 ## Deployment
