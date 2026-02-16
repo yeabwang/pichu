@@ -8,7 +8,7 @@ version = "0.1.0"
 description = "⚡ Pichu — code, compile, conquer"
 readme = "README.md"
 license = "MIT"
-requires-python = ">=3.13"
+requires-python = ">=3.11"
 authors = [{ name = "Pichu Contributors" }]
 dependencies = [
     "beautifulsoup4>=4.12.3",
@@ -74,7 +74,7 @@ sub_agents = ["*.md"]
 asyncio_mode = "auto"
 
 [tool.ruff]
-target-version = "py313"
+target-version = "py311"
 line-length = 120
 
 [tool.ruff.lint]
@@ -82,7 +82,7 @@ select = ["E", "F", "W", "I"]
 ignore = ["E501"]
 
 [tool.mypy]
-python_version = "3.13"
+python_version = "3.11"
 ignore_missing_imports = true
 check_untyped_defs = false
 disallow_untyped_defs = false

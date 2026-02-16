@@ -84,7 +84,7 @@ docker run --rm -it `
 
 - The workspace is mounted at `/workspace` inside the container.
 - `.env` files are excluded from the image via `.dockerignore` — pass secrets as environment variables.
-- The image uses `python:3.13-slim` as its base.
+- The image uses `python:3.11-slim` as its base.
 
 ## PyPI Publishing
 
