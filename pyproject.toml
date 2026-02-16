@@ -51,6 +51,7 @@ pichu = "main:main"
 py-modules = ["main"]
 
 [tool.setuptools.packages.find]
+where = ["src"]
 include = [
     "agent*",
     "client*",

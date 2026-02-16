@@ -11,6 +11,7 @@ import pytest
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from agent.events import AgentEvent
+
 from main import CLI
 
 
@@ -116,7 +117,7 @@ def test_config_has_llm_model_detects_model_entry(tmp_path):
 
 
 def test_is_model_configured_false_without_env_or_config_model(tmp_path, monkeypatch):
-    project_dir = tmp_path / ".PICHU"
+    project_dir = tmp_path / ".pichu"
     project_dir.mkdir()
     (project_dir / "config.toml").write_text("[llm]\ntimeout = 120.0\n", encoding="utf-8")
     system_config = tmp_path / "system.toml"
@@ -125,7 +126,7 @@ def test_is_model_configured_false_without_env_or_config_model(tmp_path, monkeyp
     import main as main_module
 
     monkeypatch.delenv("LLM_MODEL", raising=False)
-    monkeypatch.setenv("PICHU_PROJECT_DIR", ".PICHU")
+    monkeypatch.setenv("PICHU_PROJECT_DIR", ".pichu")
     monkeypatch.setenv("PICHU_CONFIG_FILE", "config.toml")
     monkeypatch.setattr(main_module, "get_system_config_path", lambda: system_config)
 

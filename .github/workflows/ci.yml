@@ -78,7 +78,7 @@ jobs:
         run: uv sync --extra dev
 
       - name: Mypy
-        run: uv run mypy agent/ client/ commands/ config/ context/ hooks/ safety/ sub_agents/ tools/ ui/ utils/ main.py
+        run: uv run mypy src/agent/ src/client/ src/commands/ src/config/ src/context/ src/hooks/ src/safety/ sub_agents/ src/tools/ src/ui/ src/utils/ main.py
 
   # ── Tests ───────────────────────────────────
   test:
@@ -133,7 +133,7 @@ jobs:
         run: uv sync --extra dev
 
       - name: Bandit security check
-        run: uv run ruff check --select S agent/ client/ commands/ config/ context/ hooks/ safety/ sub_agents/ tools/ ui/ utils/ main.py
+        run: uv run ruff check --select S src/agent/ src/client/ src/commands/ src/config/ src/context/ src/hooks/ src/safety/ sub_agents/ src/tools/ src/ui/ src/utils/ main.py
 
   # ── Build ───────────────────────────────────
   build:

@@ -266,18 +266,19 @@ See [docs/deployment.md](docs/deployment.md) for full deployment details.
 ```
 pichu/
 ├── main.py          CLI entrypoint — wires config → agent → TUI
-├── agent/           Runtime orchestration loop, events, session lifecycle
-├── client/          LLM transport and stream parsing
-├── commands/        Slash command registry and 28 built-in handlers
-├── config/          Configuration schema, loader, and merge logic
-├── context/         Context window management and compaction
-├── hooks/           Lifecycle hook framework
-├── prompts/         System prompt construction
-├── safety/          Approval policies, sandbox, and command risk checks
+├── src/
+│   ├── agent/       Runtime orchestration loop, events, session lifecycle
+│   ├── client/      LLM transport and stream parsing
+│   ├── commands/    Slash command registry and 28 built-in handlers
+│   ├── config/      Configuration schema, loader, and merge logic
+│   ├── context/     Context window management and compaction
+│   ├── hooks/       Lifecycle hook framework
+│   ├── prompts/     System prompt construction
+│   ├── safety/      Approval policies, sandbox, and command risk checks
+│   ├── tools/       Built-in and MCP tool implementations
+│   ├── ui/          Terminal rendering (Rich-based TUI)
+│   └── utils/       Sessions, memory, tasks, web helpers, and more
 ├── sub_agents/      Sub-agent markdown definitions
-├── tools/           Built-in and MCP tool implementations
-├── ui/              Terminal rendering (Rich-based TUI)
-├── utils/           Sessions, memory, tasks, web helpers, and more
 ├── tests/           Test suite (pytest)
 └── docs/            Module-level developer documentation
 ```

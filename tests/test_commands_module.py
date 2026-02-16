@@ -161,7 +161,7 @@ async def test_project_custom_commands_override_global_custom_commands(tmp_path,
 
 
 def test_builtin_registry_includes_all_builtin_command_classes():
-    builtin_dir = Path(__file__).parent.parent / "commands" / "builtin"
+    builtin_dir = Path(__file__).parent.parent / "src" / "commands" / "builtin"
     discovered: set[str] = set()
     for file_path in builtin_dir.glob("*.py"):
         if file_path.name == "__init__.py":
