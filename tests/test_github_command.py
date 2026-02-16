@@ -29,6 +29,7 @@ async def test_github_setup_creates_mcp_server_config(tmp_path, monkeypatch):
 
     monkeypatch.setenv("PICHU_PROJECT_DIR", ".pichu")
     monkeypatch.setenv("PICHU_CONFIG_FILE", "config.toml")
+    monkeypatch.setenv("GITHUB_PERSONAL_ACCESS_TOKEN", "ghp_test_token")
 
     command = GithubCommand()
     config = Config(cwd=tmp_path)
@@ -54,6 +55,7 @@ async def test_github_setup_is_idempotent(tmp_path, monkeypatch):
 
     monkeypatch.setenv("PICHU_PROJECT_DIR", ".pichu")
     monkeypatch.setenv("PICHU_CONFIG_FILE", "config.toml")
+    monkeypatch.setenv("GITHUB_PERSONAL_ACCESS_TOKEN", "ghp_test_token")
 
     command = GithubCommand()
     config = Config(cwd=tmp_path)
@@ -75,6 +77,7 @@ async def test_github_setup_local_mode_creates_docker_profile(tmp_path, monkeypa
 
     monkeypatch.setenv("PICHU_PROJECT_DIR", ".pichu")
     monkeypatch.setenv("PICHU_CONFIG_FILE", "config.toml")
+    monkeypatch.setenv("GITHUB_PERSONAL_ACCESS_TOKEN", "ghp_test_token")
 
     command = GithubCommand()
     config = Config(cwd=tmp_path)

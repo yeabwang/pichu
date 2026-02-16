@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 import os
+import shutil
 from collections.abc import MutableMapping
+from pathlib import Path
 from typing import TYPE_CHECKING
 
 from commands.base import CommandResult, SlashCommand
@@ -23,6 +25,43 @@ _GITHUB_MCP_ARGS = [
     "ghcr.io/github/github-mcp-server",
 ]
 _GITHUB_REMOTE_URL = "https://api.githubcopilot.com/mcp/"
+_GITHUB_TOKEN_ENV = "GITHUB_PERSONAL_ACCESS_TOKEN"
+
+
+def _mask_secret(value: str) -> str:
+    if len(value) <= 8:
+        return "*" * len(value)
+    return f"{value[:4]}{'*' * (len(value) - 8)}{value[-4:]}"
+
+
+def _find_env_file() -> Path:
+    from config.loader import get_config_dir
+
+    return get_config_dir() / ".env"
+
+
+def _write_env_keys(env_path: Path, keys: dict[str, str]) -> None:
+    lines: list[str] = []
+    existing: dict[str, int] = {}
+
+    if env_path.exists():
+        raw = env_path.read_text(encoding="utf-8")
+        lines = raw.splitlines(keepends=True)
+        for i, line in enumerate(lines):
+            stripped = line.strip()
+            if stripped and not stripped.startswith("#") and "=" in stripped:
+                var_name = stripped.split("=", 1)[0].strip()
+                existing[var_name] = i
+
+    for var, value in keys.items():
+        entry = f"{var}={value}\n"
+        if var in existing:
+            lines[existing[var]] = entry
+        else:
+            lines.append(entry)
+
+    env_path.parent.mkdir(parents=True, exist_ok=True)
+    env_path.write_text("".join(lines), encoding="utf-8")
 
 
 class GithubCommand(SlashCommand):
@@ -36,10 +75,18 @@ class GithubCommand(SlashCommand):
         action = tokens[0].lower() if tokens else "status"
 
         if action == "status":
+            configured_name = next(
+                (name for name in config.mcp_servers.keys() if name.casefold() == "github"),
+                None,
+            )
+            if configured_name is None:
+                return await self._interactive_setup(session, tui, config, title="GitHub setup")
             return self._render_status(session, tui, config)
         if action in {"setup", "install"}:
-            mode = tokens[1].lower() if len(tokens) > 1 else "remote"
-            return await self._setup(session, tui, config, mode=mode)
+            if len(tokens) > 1:
+                mode = tokens[1].lower()
+                return await self._setup(session, tui, config, mode=mode)
+            return await self._interactive_setup(session, tui, config, title="Reconfigure GitHub MCP")
         if action in {"examples", "tasks"}:
             return self._render_examples(tui)
 
@@ -80,6 +127,10 @@ class GithubCommand(SlashCommand):
 
         if raw_status == "connected":
             status_text = "[success]✓ connected[/success]"
+        elif raw_status == "connecting":
+            status_text = "[warning]connecting[/warning]"
+        elif raw_status == "disconnected":
+            status_text = "[warning]disconnected (run /mcp reconnect)[/warning]"
         elif raw_status == "disabled":
             status_text = "[dim]disabled[/dim]"
         elif raw_status == "configured":
@@ -92,9 +143,11 @@ class GithubCommand(SlashCommand):
 
         github_tools: list[str] = []
         if session:
-            github_tools = [
-                name for name in session.tool_registry.get_mcp_tool_names() if name.startswith("mcp__github__")
-            ]
+            tool_prefix = "mcp__github__"
+            if configured_name:
+                safe_name = self._sanitize_identifier(configured_name)
+                tool_prefix = f"mcp__{safe_name}__"
+            github_tools = [name for name in session.tool_registry.get_mcp_tool_names() if name.startswith(tool_prefix)]
 
         profile = "unknown"
         if server_config is not None:
@@ -145,6 +198,12 @@ class GithubCommand(SlashCommand):
         return aliases.get(raw_mode.strip().lower())
 
     @staticmethod
+    def _sanitize_identifier(value: str) -> str:
+        sanitized = "".join(char if char.isalnum() or char == "_" else "_" for char in value)
+        sanitized = sanitized.strip("_")
+        return sanitized or "unnamed"
+
+    @staticmethod
     def _profile_payload(mode: str) -> tuple[dict[str, object], str]:
         if mode == "local":
             return (
@@ -173,12 +232,89 @@ class GithubCommand(SlashCommand):
             "remote",
         )
 
+    @staticmethod
+    def _is_token_configured() -> bool:
+        return bool(os.environ.get(_GITHUB_TOKEN_ENV, "").strip())
+
+    def _check_token_on_status(self, tui: "TUI", config: "Config") -> None:
+        return
+
+    def _prompt_and_store_token(self, tui: "TUI") -> bool:
+        token = os.environ.get(_GITHUB_TOKEN_ENV, "").strip()
+        if token:
+            return True
+
+        tui.console.print()
+        token = tui.console.input("  [bold]GitHub personal access token: [/bold]").strip()
+        if not token:
+            tui.console.print(f"  [warning]⚠[/warning] {_GITHUB_TOKEN_ENV} is required.")
+            return False
+
+        env_path = _find_env_file()
+        _write_env_keys(env_path, {_GITHUB_TOKEN_ENV: token})
+        os.environ[_GITHUB_TOKEN_ENV] = token
+
+        tui.console.print(f"  [success]✓[/success] {_GITHUB_TOKEN_ENV} saved to {env_path}")
+        tui.console.print(f"  [dim]Token:[/dim] {_mask_secret(token)}")
+        return True
+
+    async def _interactive_setup(
+        self, session: "Session", tui: "TUI", config: "Config", *, title: str
+    ) -> CommandResult:
+        console = tui.console
+        console.print()
+        console.print(f"  [bold]{title}[/bold]")
+        console.print("  [bold]Select a GitHub MCP profile:[/bold]")
+        console.print()
+
+        options: list[tuple[int, str]] = [
+            (0, "Local (Docker)  [dim](requires docker + GITHUB_PERSONAL_ACCESS_TOKEN)[/dim]"),
+            (1, "Remote  [dim](api.githubcopilot.com/mcp + GITHUB_PERSONAL_ACCESS_TOKEN)[/dim]"),
+            (2, "Remote read-only  [dim](api.githubcopilot.com/mcp/readonly + token)[/dim]"),
+        ]
+
+        default_index = 1
+        configured_name = next(
+            (name for name in config.mcp_servers.keys() if name.casefold() == "github"),
+            None,
+        )
+        if configured_name is not None:
+            server_cfg = config.mcp_servers.get(configured_name)
+            if server_cfg is not None:
+                if server_cfg.command:
+                    default_index = 0
+                elif (server_cfg.url or "").rstrip("/").endswith("/readonly"):
+                    default_index = 2
+                elif server_cfg.url:
+                    default_index = 1
+
+        if hasattr(tui, "_interactive_select"):
+            idx = tui._interactive_select(options, default_index=default_index)
+        else:
+            idx = default_index
+        selected_mode = "local" if idx == 0 else "readonly" if idx == 2 else "remote"
+
+        return await self._setup(session, tui, config, mode=selected_mode)
+
+    def _print_mode_prereq(self, tui: "TUI", mode: str) -> None:
+        if mode == "local" and shutil.which("docker") is None:
+            tui.console.print("  [warning]⚠[/warning] Docker is not on PATH. Local GitHub MCP may fail to start.")
+        if mode in {"remote", "readonly"}:
+            tui.console.print(
+                "  [dim]Remote profile uses api.githubcopilot.com and requires a valid GitHub personal access token.[/dim]"
+            )
+
     async def _setup(self, session: "Session", tui: "TUI", config: "Config", *, mode: str) -> CommandResult:
         from tomlkit import document, dumps, item, parse, table
 
         normalized_mode = self._normalize_mode(mode)
         if normalized_mode is None:
             return CommandResult(error="Unknown setup mode. Use /github setup [remote|readonly|local].")
+
+        self._print_mode_prereq(tui, normalized_mode)
+        has_token = self._prompt_and_store_token(tui)
+        if not has_token:
+            return CommandResult(error=f"{_GITHUB_TOKEN_ENV} is required to configure GitHub MCP.")
 
         project_dir_name = os.environ.get("PICHU_PROJECT_DIR", ".pichu")
         config_file_name = os.environ.get("PICHU_CONFIG_FILE", "config.toml")
@@ -221,7 +357,26 @@ class GithubCommand(SlashCommand):
         if session and session._mcp_manager:
             try:
                 tool_count = await session._mcp_manager.reconnect(session.tool_registry)
-                tui.console.print(f"  [success]✓[/success] Reconnected MCP servers ({tool_count} tool(s) registered).")
+                snapshots = session._mcp_manager.get_status_snapshot()
+                github_snapshot = next(
+                    (candidate for candidate in snapshots if candidate.name.casefold() == github_name.casefold()),
+                    None,
+                )
+                if github_snapshot and github_snapshot.status == "connected":
+                    tui.console.print(
+                        f"  [success]✓[/success] Reconnected MCP servers ({tool_count} tool(s) registered)."
+                    )
+                elif github_snapshot and github_snapshot.status == "error":
+                    tui.console.print(
+                        f"  [warning]⚠[/warning] Reconnected MCP servers ({tool_count} tool(s) registered), "
+                        f"but GitHub server is in error: {github_snapshot.error or 'unknown error'}."
+                    )
+                else:
+                    state = github_snapshot.status if github_snapshot else "unknown"
+                    tui.console.print(
+                        f"  [warning]⚠[/warning] Reconnected MCP servers ({tool_count} tool(s) registered), "
+                        f"but GitHub server status is {state}."
+                    )
             except Exception as exc:
                 tui.console.print(f"  [warning]⚠[/warning] Config saved, but reconnect failed: {exc}")
                 tui.console.print("  [dim]After setting token, run /mcp reconnect.[/dim]")

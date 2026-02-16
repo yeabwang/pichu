@@ -1,8 +1,9 @@
 ---
 name: database-reviewer
 description: PostgreSQL database specialist for query optimization, schema design, security, and performance. Use PROACTIVELY when writing SQL, creating migrations, designing schemas, or troubleshooting database performance. Incorporates Supabase best practices.
-tools: ["Read", "Write", "Edit", "Bash", "Grep", "Glob"]
-model:
+tools: ["read_file", "write_file", "edit_file", "shell", "grep", "glob", "list_dir"]
+model: inherit
+maxTurns: 14
 ---
 # Database Reviewer
 

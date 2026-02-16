@@ -19,6 +19,9 @@ venv/
 .env
 .env.*
 !.env.example
+.pichu/.env
+.pichu/.env.*
+.pichu/*.env
 
 # Logs
 logs/

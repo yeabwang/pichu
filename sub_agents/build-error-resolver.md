@@ -1,8 +1,9 @@
 ---
 name: build-error-resolver
 description: Build and TypeScript error resolution specialist. Use PROACTIVELY when build fails or type errors occur. Fixes build/type errors only with minimal diffs, no architectural edits. Focuses on getting the build green quickly.
-tools: ["Read", "Write", "Edit", "Bash", "Grep", "Glob"]
-model:
+tools: ["read_file", "write_file", "edit_file", "batch_apply", "shell", "grep", "glob", "list_dir"]
+model: inherit
+maxTurns: 16
 ---
 # Build Error Resolver
 
