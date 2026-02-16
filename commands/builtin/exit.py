@@ -19,5 +19,4 @@ class ExitCommand(SlashCommand):
     aliases = ["quit", "q"]
 
     async def execute(self, args: str, session: "Session", tui: "TUI", config: "Config") -> CommandResult:
-        tui.print_goodbye("Session ended. Happy coding!")
         return CommandResult(should_exit=True)
