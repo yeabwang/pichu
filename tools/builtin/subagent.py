@@ -241,6 +241,7 @@ class SubAgentTool(Tool):
         timeout_seconds: int = 30,
     ) -> tuple[int, str]:
         """Execute one hook command without blocking the event loop."""
+        process: asyncio.subprocess.Process | None = None
         try:
             process = await asyncio.create_subprocess_shell(
                 command,
@@ -257,6 +258,12 @@ class SubAgentTool(Tool):
             return (process.returncode or 0, stderr_text)
         except asyncio.TimeoutError:
             logger.warning(f"Hook command timed out: {command}")
+            if process is not None:
+                try:
+                    process.kill()
+                    await asyncio.wait_for(process.communicate(), timeout=2)
+                except Exception as exc:
+                    logger.debug("Failed to terminate timed-out hook process cleanly: %s", exc)
             return (124, "hook command timed out")
         except Exception as exc:
             logger.warning(f"Hook command failed: {exc}")

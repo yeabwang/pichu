@@ -252,6 +252,7 @@ class HookEngine:
         timeout = handler.timeout or 60
 
         logger.debug(f"Running hook: {command} (timeout: {timeout}s)")
+        proc: asyncio.subprocess.Process | None = None
 
         try:
             # Use subprocess_shell on all platforms for consistent behavior
@@ -291,10 +292,12 @@ class HookEngine:
         except asyncio.TimeoutError:
             logger.warning(f"Hook timed out after {timeout}s: {command}")
             # Try to kill the process
-            try:
-                proc.kill()
-            except Exception as kill_error:
-                logger.debug("Failed to kill timed-out hook process: %s", kill_error)
+            if proc is not None:
+                try:
+                    proc.kill()
+                    await asyncio.wait_for(proc.communicate(), timeout=2)
+                except Exception as kill_error:
+                    logger.debug("Failed to kill timed-out hook process: %s", kill_error)
             return HookResult(
                 exit_code=1,
                 stderr=f"Hook timed out after {timeout}s",
@@ -303,6 +306,20 @@ class HookEngine:
         except Exception as e:
             logger.error(f"Hook execution failed: {e}")
             return HookResult(exit_code=1, stderr=str(e))
+        finally:
+            if proc is not None and proc.stdin is not None and not proc.stdin.is_closing():
+                try:
+                    proc.stdin.close()
+                    await proc.stdin.wait_closed()
+                except Exception as close_error:
+                    logger.debug("Failed closing hook stdin pipe: %s", close_error)
+            if proc is not None:
+                transport = getattr(proc, "_transport", None)
+                if transport is not None:
+                    try:
+                        transport.close()
+                    except Exception as close_error:
+                        logger.debug("Failed closing hook process transport: %s", close_error)
 
     async def _run_background_handler(self, handler: HookHandler, input_json: str, event: HookEvent) -> None:
         """Run a hook handler in the background (async=true). Fire and forget."""

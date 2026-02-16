@@ -25,7 +25,7 @@ _GITHUB_MCP_ARGS = [
     "ghcr.io/github/github-mcp-server",
 ]
 _GITHUB_REMOTE_URL = "https://api.githubcopilot.com/mcp/"
-_GITHUB_TOKEN_ENV = "GITHUB_PERSONAL_ACCESS_TOKEN"
+_GITHUB_PAT_ENV = "GITHUB_PERSONAL_ACCESS_TOKEN"
 
 
 def _mask_secret(value: str) -> str:
@@ -234,27 +234,27 @@ class GithubCommand(SlashCommand):
 
     @staticmethod
     def _is_token_configured() -> bool:
-        return bool(os.environ.get(_GITHUB_TOKEN_ENV, "").strip())
+        return bool(os.environ.get(_GITHUB_PAT_ENV, "").strip())
 
     def _check_token_on_status(self, tui: "TUI", config: "Config") -> None:
         return
 
     def _prompt_and_store_token(self, tui: "TUI") -> bool:
-        token = os.environ.get(_GITHUB_TOKEN_ENV, "").strip()
+        token = os.environ.get(_GITHUB_PAT_ENV, "").strip()
         if token:
             return True
 
         tui.console.print()
         token = tui.console.input("  [bold]GitHub personal access token: [/bold]").strip()
         if not token:
-            tui.console.print(f"  [warning]⚠[/warning] {_GITHUB_TOKEN_ENV} is required.")
+            tui.console.print(f"  [warning]⚠[/warning] {_GITHUB_PAT_ENV} is required.")
             return False
 
         env_path = _find_env_file()
-        _write_env_keys(env_path, {_GITHUB_TOKEN_ENV: token})
-        os.environ[_GITHUB_TOKEN_ENV] = token
+        _write_env_keys(env_path, {_GITHUB_PAT_ENV: token})
+        os.environ[_GITHUB_PAT_ENV] = token
 
-        tui.console.print(f"  [success]✓[/success] {_GITHUB_TOKEN_ENV} saved to {env_path}")
+        tui.console.print(f"  [success]✓[/success] {_GITHUB_PAT_ENV} saved to {env_path}")
         tui.console.print(f"  [dim]Token:[/dim] {_mask_secret(token)}")
         return True
 
@@ -314,7 +314,7 @@ class GithubCommand(SlashCommand):
         self._print_mode_prereq(tui, normalized_mode)
         has_token = self._prompt_and_store_token(tui)
         if not has_token:
-            return CommandResult(error=f"{_GITHUB_TOKEN_ENV} is required to configure GitHub MCP.")
+            return CommandResult(error=f"{_GITHUB_PAT_ENV} is required to configure GitHub MCP.")
 
         project_dir_name = os.environ.get("PICHU_PROJECT_DIR", ".pichu")
         config_file_name = os.environ.get("PICHU_CONFIG_FILE", "config.toml")

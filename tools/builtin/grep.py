@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import asyncio
 import fnmatch
+import logging
 import re
 import shutil
 from dataclasses import dataclass, field
@@ -30,6 +31,8 @@ from utils.paths import resolve_path
 
 if TYPE_CHECKING:
     from config import Config
+
+logger = logging.getLogger(__name__)
 
 
 class GrepParams(BaseModel):
@@ -341,6 +344,7 @@ class GrepTool(Tool):
         cmd.extend(["--", params.pattern, str(search_path)])
 
         # Run ripgrep
+        proc: asyncio.subprocess.Process | None = None
         try:
             proc = await asyncio.wait_for(
                 asyncio.create_subprocess_exec(
@@ -356,6 +360,12 @@ class GrepTool(Tool):
                 timeout=self._timeout,
             )
         except asyncio.TimeoutError:
+            if proc is not None:
+                try:
+                    proc.kill()
+                    await asyncio.wait_for(proc.communicate(), timeout=2)
+                except Exception as exc:
+                    logger.debug("Failed to terminate ripgrep process cleanly: %s", exc)
             raise
 
         # Parse JSON output
