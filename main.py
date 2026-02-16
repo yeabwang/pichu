@@ -9,7 +9,7 @@ import click
 
 from agent import Agent, AgentEventType, Session
 from commands import create_command_router
-from config import Config, load_config
+from config import Config, get_system_config_path, load_config
 from safety.approval import ApprovalResponse
 from tools.base import ToolConfirmation
 from ui.tui import TUI, get_console
@@ -77,9 +77,8 @@ class CLI:
             return await self._process_message(message)
 
     async def run_interactive(self) -> None:
-        model_display = self._config.model
-        if not self._config.llm.api_key:
-            model_display = "Not set (use /login to set your model)"
+        model_configured = self._is_model_configured()
+        model_display = self._config.model if model_configured else "Not set (use /login to set your model)"
 
         missing_bootstrap_files = self._get_missing_bootstrap_files()
         tips = "/help for commands • /exit to quit"
@@ -100,7 +99,7 @@ class CLI:
                 f"[warning]Project setup incomplete:[/warning] missing {missing}. Run [command]/init[/command]."
             )
 
-        if not self._config.llm.api_key:
+        if not model_configured:
             console.print(
                 "[warning]Model not set:[/warning] use [command]/login[/command] to configure provider and model."
             )
@@ -171,7 +170,7 @@ class CLI:
                     break
 
     def _get_missing_bootstrap_files(self) -> list[str]:
-        project_dir_name = os.environ.get("PICHU_PROJECT_DIR", ".pichu")
+        project_dir_name = os.environ.get("PICHU_PROJECT_DIR", ".PICHU")
         config_file_name = os.environ.get("PICHU_CONFIG_FILE", "config.toml")
         project_root = Path(self._config.cwd)
 
@@ -180,6 +179,48 @@ class CLI:
             project_root / project_dir_name / config_file_name,
         ]
         return [str(path.relative_to(project_root)) for path in expected_files if not path.exists()]
+
+    def _is_model_configured(self) -> bool:
+        if os.environ.get("LLM_MODEL", "").strip():
+            return True
+
+        project_config_path = self._find_project_config_path()
+        if project_config_path and self._config_has_llm_model(project_config_path):
+            return True
+
+        return self._config_has_llm_model(get_system_config_path())
+
+    def _find_project_config_path(self) -> Path | None:
+        project_dir_name = os.environ.get("PICHU_PROJECT_DIR", ".PICHU")
+        config_file_name = os.environ.get("PICHU_CONFIG_FILE", "config.toml")
+        current = Path(self._config.cwd).resolve()
+
+        while True:
+            candidate = current / project_dir_name / config_file_name
+            if candidate.exists() and candidate.is_file():
+                return candidate
+            if current.parent == current:
+                break
+            current = current.parent
+
+        return None
+
+    @staticmethod
+    def _config_has_llm_model(config_path: Path) -> bool:
+        if not config_path.exists() or not config_path.is_file():
+            return False
+
+        try:
+            from tomlkit import parse as toml_parse
+
+            doc = toml_parse(config_path.read_text(encoding="utf-8"))
+            llm = doc.get("llm")
+            if llm is None:
+                return False
+            model = llm.get("model")
+            return bool(str(model).strip()) if model is not None else False
+        except Exception:
+            return False
 
     def _resolve_resume_session(self) -> str | None:
         """Determine which session to resume, if any."""

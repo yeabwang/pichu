@@ -181,8 +181,8 @@ class LLMConfig:
     api_key: str = field(default_factory=lambda: _env("LLM_API_KEY"))
 
     # These come from config files (system → project)
-    base_url: str = "https://openrouter.ai/api/v1"
-    model: str = "mistralai/devstral-2512:free"
+    base_url: str = "Not set - use /login to configure your LLM provider and model"
+    model: str = "Not set - use /login to configure your LLM provider and model"
     temperature: float = 0.3
     timeout: float = 120.0
     max_tokens: int | None = None

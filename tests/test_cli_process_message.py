@@ -107,3 +107,29 @@ async def test_process_message_updates_context_tracker_from_context_stats_event(
     response = await cli._process_message("ping")
     assert response == "ok"
     assert cli.tui.context_updates == [{"total_tokens": 10, "context_limit": 100, "percentage": 10.0}]
+
+
+def test_config_has_llm_model_detects_model_entry(tmp_path):
+    config_path = tmp_path / "config.toml"
+    config_path.write_text('[llm]\nmodel = "openai/gpt-4.1"\n', encoding="utf-8")
+    assert CLI._config_has_llm_model(config_path)
+
+
+def test_is_model_configured_false_without_env_or_config_model(tmp_path, monkeypatch):
+    project_dir = tmp_path / ".PICHU"
+    project_dir.mkdir()
+    (project_dir / "config.toml").write_text("[llm]\ntimeout = 120.0\n", encoding="utf-8")
+    system_config = tmp_path / "system.toml"
+    system_config.write_text("[llm]\nbase_url = 'https://example.com'\n", encoding="utf-8")
+
+    import main as main_module
+
+    monkeypatch.delenv("LLM_MODEL", raising=False)
+    monkeypatch.setenv("PICHU_PROJECT_DIR", ".PICHU")
+    monkeypatch.setenv("PICHU_CONFIG_FILE", "config.toml")
+    monkeypatch.setattr(main_module, "get_system_config_path", lambda: system_config)
+
+    cli = CLI.__new__(CLI)
+    cli._config = type("Cfg", (), {"cwd": tmp_path})()
+
+    assert not cli._is_model_configured()

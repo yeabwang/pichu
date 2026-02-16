@@ -20,69 +20,45 @@
 
 ## Quick Start
 
-### Prerequisites
+### 1) Prerequisites
 
 - Python 3.13+
-- [uv](https://docs.astral.sh/uv/) (recommended) or pip
-- An LLM API key (e.g., [OpenRouter](https://openrouter.ai/))
+- [uv](https://docs.astral.sh/uv/) (recommended)
+- An LLM API key (for example, [OpenRouter](https://openrouter.ai/))
 
-### Install
+### 2) Install
 
 ```bash
-# One-line install (Linux / macOS)
-curl -fsSL https://raw.githubusercontent.com/yeabwang/pichu/main/install.sh | bash
+git clone https://github.com/yeabwang/pichu.git
+cd pichu
 
-# ── Or pick your preferred package manager ──
+uv venv
+uv pip install -e .[dev]
+```
 
-# uv (recommended)
+#### End-user install options:
+
+```bash
+# uv tool install (recommended for end users)
 uv tool install pichu
 
 # pip
 pip install pichu
 
-# pipx
-pipx install pichu
-
-# From source
-git clone https://github.com/yeabwang/pichu.git && cd pichu
-uv venv
-uv pip install -r requirements.txt && uv pip install -e .
+# Linux/macOS one-line installer
+curl -fsSL https://raw.githubusercontent.com/yeabwang/pichu/main/install.sh | bash
 ```
 
-### First-Time Setup
+### 3) Configure model credentials
 
-```bash
-pichu          # start interactive mode
-/init          # generate AGENTS.md and .pichu/config.toml in the current project
-/login         # configure API key, provider, and model interactively
-```
-
-> `/login` writes credentials to `~/.pichu/config.toml` and applies them to the running session immediately. Until you configure credentials, startup shows `Model: Not set (use /login to set your model)`.
-
-### Configure
-
-The quickest way to configure Pichu is the interactive `/login` command:
+Interactive (recommended):
 
 ```bash
 pichu
-/login    # walks you through provider, API key, and model selection
+/login
 ```
 
-Or copy the example environment file and add your API key:
-
-```bash
-cp .env.example .env
-```
-
-Then edit `.env`:
-
-```dotenv
-LLM_API_KEY=your-key-here
-LLM_BASE_URL=https://openrouter.ai/api/v1
-LLM_MODEL=mistralai/devstral-2512:free
-```
-
-Or set environment variables directly:
+Environment variable:
 
 ```bash
 # Linux / macOS
@@ -92,11 +68,35 @@ export LLM_API_KEY="your-key-here"
 $env:LLM_API_KEY = "your-key-here"
 ```
 
-### Run
+Optional provider/model overrides:
 
 ```bash
-pichu                       # interactive mode
-pichu "explain this repo"   # single-prompt mode
+export LLM_BASE_URL="https://openrouter.ai/api/v1"
+export LLM_MODEL="mistralai/devstral-2512:free"
+```
+
+### 4) Initialize project files
+
+Run inside your project:
+
+```bash
+/init
+```
+
+This generates `AGENTS.md` and `.pichu/config.toml` for the current project.
+
+### 5) Run and validate
+
+```bash
+# Interactive mode
+pichu
+
+# Single prompt
+pichu "explain this repo"
+
+# Run tests
+uv run pytest -q
+
 ```
 
 ### CLI Options
@@ -191,13 +191,12 @@ Behavior instructions for the agent are loaded from `.pichu/AGENT.md`.
 
 ## Development
 
-### Setup
+Development setup is covered in [Quick Start (Dev First)](#quick-start-dev-first).
+
+If you prefer requirements files instead of extras:
 
 ```bash
 uv venv
-uv pip install -e .[dev]    # install with dev extras
-
-# Or use requirements files
 uv pip install -r requirements-dev.txt
 uv pip install -e .
 ```
