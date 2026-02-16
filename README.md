@@ -6,6 +6,10 @@
 
 ---
 
+<p align="center">
+  <img src="assets/demo.gif" alt="Pichu Demo" />
+</p>
+
 ## Features
 
 - **Composable tooling stack** — file editing/search, shell, web research, task tools, and memory tools
