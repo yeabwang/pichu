@@ -4,7 +4,7 @@
 
 ## Overview
 
-The utils module provides infrastructure used across the agent: session/checkpoint persistence, memory management, task helpers, sub-agent loading, web-tool safety, and common support utilities.
+The utils module provides infrastructure used across the agent: session/checkpoint persistence, memory management, task helpers, web-tool safety, and common support utilities.
 
 ## Subsystems
 
@@ -35,16 +35,6 @@ See [Task Management](task-management.md) for state machine and coordination det
 
 `resolve_session_reference(...)` is the canonical resolver for CLI and `/sessions` — it handles exact ID → prefix → exact title → partial title with explicit ambiguity errors.
 
-### Sub-agents
-
-| File | Responsibility |
-|------|---------------|
-| `subagent_types.py` | Sub-agent config and result contracts |
-| `subagent_loader.py` | Markdown loading from user and project directories |
-| `subagent_transcript.py` | Per-sub-agent transcript persistence |
-
-See [Sub-agents Module](subagents-module.md) for orchestration details.
-
 ### Web Tool Support
 
 | File | Responsibility |
@@ -63,7 +53,6 @@ See [Sub-agents Module](subagents-module.md) for orchestration details.
 | `loop_detector.py` | Loop detection strategies |
 | `exceptions.py` | Shared exception types |
 | `agents_loader.py` | `AGENTS.md` file parsing and context extraction |
-| `sandbox.py` | Compatibility shim (moved to `safety.sandbox`) |
 
 ## Reliability Contracts
 
@@ -83,4 +72,4 @@ See [Sub-agents Module](subagents-module.md) for orchestration details.
 - [Task Management](task-management.md) — detailed task system docs
 - [Sub-agents Module](subagents-module.md) — sub-agent orchestration
 - [Logging Module](logging-module.md) — runtime logging details
-- [Safety Module](safety-module.md) — sandbox (moved from utils)
+- [Safety Module](safety-module.md) — sandbox and approval guardrails

@@ -12,6 +12,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 import config.loader as loader
 from config import load_config, reset_config
 from config.config import ApprovalPolicy, Config, MCPServerConfig
+from utils.exceptions import ConfigError
 
 
 def test_update_from_dict_normalizes_hooks_and_mcp_servers():
@@ -95,3 +96,24 @@ def test_load_config_merges_system_project_and_env_sources(tmp_path, monkeypatch
     assert cfg.debug is True
     assert cfg.approval.policy == ApprovalPolicy.AUTO_EDIT
     assert cfg.developer_instructions == "Developer constraints."
+
+
+def test_load_file_sources_ignores_optional_source_errors(monkeypatch, tmp_path):
+    bad_source = loader.ConfigSource(name="system", path=tmp_path / "broken.toml", required=False)
+
+    def _fail_parse(_path: Path):
+        raise ConfigError("parse failure")
+
+    monkeypatch.setattr(loader, "_parse_toml_file", _fail_parse)
+    assert loader._load_file_sources([bad_source]) == {}
+
+
+def test_load_file_sources_raises_required_source_errors(monkeypatch, tmp_path):
+    bad_source = loader.ConfigSource(name="project", path=tmp_path / "broken.toml", required=True)
+
+    def _fail_parse(_path: Path):
+        raise ConfigError("parse failure")
+
+    monkeypatch.setattr(loader, "_parse_toml_file", _fail_parse)
+    with pytest.raises(ConfigError, match="parse failure"):
+        loader._load_file_sources([bad_source])

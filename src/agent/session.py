@@ -15,6 +15,7 @@ from context.context_manager import ContextManager
 from hooks.engine import HookEngine
 from safety.approval import ApprovalManager
 from safety.sandbox import SandboxConfig, init_sandbox, reset_sandbox
+from subagents.loader import SubAgentLoader
 from tools.builtin import (
     MemoryTool,
     TaskCreateTool,
@@ -34,7 +35,6 @@ from utils.agents_loader import AgentsLoader
 from utils.checkpoint_manager import CheckpointManager
 from utils.memory_manager import MemoryManager
 from utils.session_storage import SessionStorage, TranscriptEntry
-from utils.subagent_loader import SubAgentLoader
 from utils.task_manager import TaskManager
 
 logger = logging.getLogger(__name__)

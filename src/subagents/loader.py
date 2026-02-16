@@ -1,4 +1,4 @@
-"""Load sub-agent definitions from user and project markdown files."""
+"""Load sub-agent definitions from bundled, user, and project markdown files."""
 
 from __future__ import annotations
 
@@ -7,9 +7,9 @@ import re
 from pathlib import Path
 from typing import Any
 
-import yaml
+import yaml  # type: ignore[import-untyped]
 
-from utils.subagent_types import SubAgentConfig
+from subagents.types import SubAgentConfig
 
 logger = logging.getLogger(__name__)
 
@@ -18,11 +18,12 @@ class SubAgentLoader:
     """
     Loader for sub-agent markdown files.
 
-    Loads sub-agents from two locations with priority:
-    1. Project-level: <project_root>/sub_agents/*.md (higher priority)
-    2. User-level: ~/.pichu/sub_agents/*.md (lower priority)
+    Loads sub-agents from three locations with priority:
+    1. Bundled: <package>/subagents/specs/*.md (base defaults)
+    2. User-level: ~/.pichu/sub_agents/*.md (overrides bundled)
+    3. Project-level: <project_root>/sub_agents/*.md (overrides user and bundled)
 
-    When names conflict, project-level sub-agents take precedence.
+    When names conflict, later sources take precedence.
 
     Example:
         loader = SubAgentLoader(project_root=Path("/my/project"))
@@ -35,6 +36,9 @@ class SubAgentLoader:
     # Default user-level agents directory
     DEFAULT_USER_AGENTS_DIR = Path.home() / ".pichu" / "sub_agents"
 
+    # Default bundled agents directory
+    DEFAULT_BUNDLED_AGENTS_DIR = Path(__file__).resolve().parent / "specs"
+
     # Default project-level agents directory name
     DEFAULT_PROJECT_AGENTS_DIR = "sub_agents"
     _AGENT_NAME_PATTERN = re.compile(r"^[a-z0-9-]+$")
@@ -43,6 +47,7 @@ class SubAgentLoader:
         self,
         project_root: Path | str | None = None,
         user_agents_dir: Path | str | None = None,
+        bundled_agents_dir: Path | str | None = None,
         project_agents_dir: str = DEFAULT_PROJECT_AGENTS_DIR,
     ):
         """
@@ -52,11 +57,14 @@ class SubAgentLoader:
             project_root: Path to the project root directory.
             user_agents_dir: Path to user-level agents directory.
                             Defaults to ~/.pichu/sub_agents/
+            bundled_agents_dir: Path to bundled agent specs.
+                                Defaults to package `specs/` directory.
             project_agents_dir: Name of the project-level agents directory.
                                Defaults to "sub_agents".
         """
         self._project_root = Path(project_root) if project_root else None
         self._user_agents_dir = Path(user_agents_dir) if user_agents_dir else self.DEFAULT_USER_AGENTS_DIR
+        self._bundled_agents_dir = Path(bundled_agents_dir) if bundled_agents_dir else self.DEFAULT_BUNDLED_AGENTS_DIR
         self._project_agents_dir = project_agents_dir
         self._cache: dict[str, SubAgentConfig] | None = None
 
@@ -72,12 +80,14 @@ class SubAgentLoader:
         """Get the user-level agents directory path."""
         return self._user_agents_dir
 
+    @property
+    def bundled_agents_path(self) -> Path:
+        """Get the bundled agents directory path."""
+        return self._bundled_agents_dir
+
     def load_all(self, force_reload: bool = False) -> dict[str, SubAgentConfig]:
         """
-        Load all sub-agents from both user and project directories.
-
-        Project-level agents take precedence over user-level agents
-        with the same name.
+        Load all sub-agents from bundled, user, and project directories.
 
         Args:
             force_reload: If True, reload from disk even if cached.
@@ -90,19 +100,27 @@ class SubAgentLoader:
 
         agents: dict[str, SubAgentConfig] = {}
 
-        # Load user-level agents (lower priority)
+        # Load bundled agents (lowest priority)
+        bundled_agents = self._load_from_directory(self._bundled_agents_dir)
+        for name, config in bundled_agents.items():
+            agents[name] = config
+            logger.debug(f"Loaded bundled sub-agent: {name}")
+
+        # Load user-level agents (middle priority)
         user_agents = self._load_from_directory(self._user_agents_dir)
         for name, config in user_agents.items():
+            if name in agents:
+                logger.debug(f"User sub-agent '{name}' overrides bundled agent")
             agents[name] = config
             logger.debug(f"Loaded user-level sub-agent: {name}")
 
-        # Load project-level agents (higher priority, overrides user-level)
+        # Load project-level agents (highest priority)
         if self._project_root:
             project_dir = self._project_root / self._project_agents_dir
             project_agents = self._load_from_directory(project_dir)
             for name, config in project_agents.items():
                 if name in agents:
-                    logger.debug(f"Project sub-agent '{name}' overrides user-level agent")
+                    logger.debug(f"Project sub-agent '{name}' overrides existing agent")
                 agents[name] = config
                 logger.debug(f"Loaded project-level sub-agent: {name}")
 

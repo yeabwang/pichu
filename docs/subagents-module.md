@@ -10,9 +10,10 @@ The sub-agent system lets the primary agent delegate scoped work to specialized 
 
 | Component | Responsibility |
 |-----------|---------------|
-| `utils/subagent_loader.py` | Loads markdown definitions from user (`~/.pichu/sub_agents/`) and project (`sub_agents/`) directories |
-| `utils/subagent_types.py` | Typed contracts for sub-agent config and execution results |
-| `utils/subagent_transcript.py` | Per-sub-agent transcript persistence for resume/debug |
+| `subagents/loader.py` | Loads markdown definitions from bundled specs, user (`~/.pichu/sub_agents/`), and project (`sub_agents/`) directories |
+| `subagents/types.py` | Typed contracts for sub-agent config and execution results |
+| `subagents/transcript.py` | Per-sub-agent transcript persistence for resume/debug |
+| `subagents/specs/*.md` | Bundled default sub-agent definitions shipped with the package |
 | `tools/builtin/subagent.py` | Runtime orchestration — `SubAgentTool` execution, hooks, and background tasks |
 
 ## Defining a Sub-agent
