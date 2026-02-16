@@ -10,8 +10,7 @@ permissions:
   contents: read
 
 env:
-  PYTHON_VERSION: "3.11"
-  COVERAGE_PYTHON: "3.13"
+  PYTHON_VERSION: "3.13"
   UV_LINK_MODE: "copy"
 
 jobs:
@@ -21,23 +20,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
-      - name: Install uv
-        uses: astral-sh/setup-uv@v4
-        with:
-          version: "latest"
-
-      - name: Set up Python
-        run: uv python install ${{ env.PYTHON_VERSION }}
-
-      - name: Install system dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y libxml2-dev libxslt1-dev zlib1g-dev
-
-      - name: Install dependencies
-        run: uv sync --extra dev
-
+      - uses: ./.github/actions/setup-env
       - name: Run pre-commit hooks
         run: uv run pre-commit run --all-files --show-diff-on-failure
 
@@ -47,26 +30,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
-      - name: Install uv
-        uses: astral-sh/setup-uv@v4
-        with:
-          version: "latest"
-
-      - name: Set up Python
-        run: uv python install ${{ env.PYTHON_VERSION }}
-
-      - name: Install system dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y libxml2-dev libxslt1-dev zlib1g-dev
-
-      - name: Install dependencies
-        run: uv sync --extra dev
-
+      - uses: ./.github/actions/setup-env
       - name: Ruff lint
         run: uv run ruff check .
-
       - name: Ruff format check
         run: uv run ruff format --check .
 
@@ -76,23 +42,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
-      - name: Install uv
-        uses: astral-sh/setup-uv@v4
-        with:
-          version: "latest"
-
-      - name: Set up Python
-        run: uv python install ${{ env.PYTHON_VERSION }}
-
-      - name: Install system dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y libxml2-dev libxslt1-dev zlib1g-dev
-
-      - name: Install dependencies
-        run: uv sync --extra dev
-
+      - uses: ./.github/actions/setup-env
       - name: Mypy
         run: uv run mypy src/agent/ src/client/ src/commands/ src/config/ src/context/ src/hooks/ src/safety/ src/subagents/ src/tools/ src/ui/ src/utils/ main.py
 
@@ -106,28 +56,13 @@ jobs:
         python-version: ["3.11", "3.12", "3.13"]
     steps:
       - uses: actions/checkout@v4
-
-      - name: Install uv
-        uses: astral-sh/setup-uv@v4
+      - uses: ./.github/actions/setup-env
         with:
-          version: "latest"
-
-      - name: Set up Python ${{ matrix.python-version }}
-        run: uv python install ${{ matrix.python-version }}
-
-      - name: Install system dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y libxml2-dev libxslt1-dev zlib1g-dev
-
-      - name: Install dependencies
-        run: uv sync --extra dev
-
+          python-version: ${{ matrix.python-version }}
       - name: Run tests with coverage
         run: uv run pytest --cov --cov-report=xml --cov-report=term-missing
-
       - name: Upload coverage to Codecov
-        if: matrix.python-version == env.COVERAGE_PYTHON
+        if: matrix.python-version == env.PYTHON_VERSION
         uses: codecov/codecov-action@v4
         with:
           file: ./coverage.xml
@@ -141,23 +76,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
-      - name: Install uv
-        uses: astral-sh/setup-uv@v4
-        with:
-          version: "latest"
-
-      - name: Set up Python
-        run: uv python install ${{ env.PYTHON_VERSION }}
-
-      - name: Install system dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y libxml2-dev libxslt1-dev zlib1g-dev
-
-      - name: Install dependencies
-        run: uv sync --extra dev
-
+      - uses: ./.github/actions/setup-env
       - name: Bandit security check
         run: uv run ruff check --select S src/agent/ src/client/ src/commands/ src/config/ src/context/ src/hooks/ src/safety/ src/subagents/ src/tools/ src/ui/ src/utils/ main.py
 
@@ -168,18 +87,11 @@ jobs:
     needs: [precommit, lint, typecheck, test]
     steps:
       - uses: actions/checkout@v4
-
-      - name: Install uv
-        uses: astral-sh/setup-uv@v4
+      - uses: ./.github/actions/setup-env
         with:
-          version: "latest"
-
-      - name: Set up Python
-        run: uv python install ${{ env.PYTHON_VERSION }}
-
+          install-deps: "false"
       - name: Build sdist & wheel
         run: uv build
-
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:

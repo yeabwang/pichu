@@ -17,6 +17,7 @@ dependencies = [
     "fastmcp>=2.12.0",
     "html2text>=2024.2.26",
     "httpx>=0.27.0",
+    "lxml>=5.0",
     "openai>=1.52.0",
     "pathspec>=0.11.0",
     "platformdirs>=4.3.0",
@@ -74,7 +75,7 @@ sub_agents = ["*.md"]
 asyncio_mode = "auto"
 
 [tool.ruff]
-target-version = "py311"
+target-version = "py313"
 line-length = 120
 
 [tool.ruff.lint]
@@ -82,10 +83,17 @@ select = ["E", "F", "W", "I"]
 ignore = ["E501"]
 
 [tool.mypy]
-python_version = "3.11"
+python_version = "3.13"
 ignore_missing_imports = true
 check_untyped_defs = false
 disallow_untyped_defs = false
 warn_return_any = false
 warn_unused_configs = true
 explicit_package_bases = true
+
+# ── uv configuration ─────────────────────────────────────
+# lxml requires system libraries (libxml2-dev, libxslt1-dev) to build
+# from source on Python versions without pre-built wheels (e.g. 3.11/3.12).
+# See .github/actions/setup-env/ for CI provisioning.
+[tool.uv]
+environments = ["sys_platform == 'linux'", "sys_platform == 'darwin'", "sys_platform == 'win32'"]
