@@ -8,10 +8,9 @@ from typing import Any
 from client.llm_client import LLMClient
 from client.models import StreamEventType, TokenUsage
 from config import Config
+from context.context_manager import ContextManager
 from prompts.system import get_compression_prompt
 from utils.text import truncate_text_to_token_limit
-
-from context.context_manager import ContextManager
 
 logger = logging.getLogger(__name__)
 

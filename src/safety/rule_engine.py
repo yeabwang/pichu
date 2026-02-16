@@ -6,9 +6,8 @@ import fnmatch
 import logging
 
 from config.config import PermissionRulesConfig
-from tools.base import ToolConfirmation
-
 from safety.approval_types import ApprovalDecision
+from tools.base import ToolConfirmation
 
 logger = logging.getLogger(__name__)
 

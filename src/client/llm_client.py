@@ -7,7 +7,6 @@ import logging
 from typing import Any, AsyncGenerator, Callable
 
 import httpx
-from config import LLMConfig, RetryConfig, get_config
 from openai import (
     APIConnectionError,
     APIError,
@@ -21,7 +20,6 @@ from tenacity import (
     stop_after_attempt,
     wait_exponential,
 )
-from utils.text import count_tokens as count_text_tokens
 
 from client.models import (
     StreamEvent,
@@ -32,6 +30,8 @@ from client.models import (
     ToolCallDelta,
     parse_tool_call_arguments,
 )
+from config import LLMConfig, RetryConfig, get_config
+from utils.text import count_tokens as count_text_tokens
 
 logger = logging.getLogger(__name__)
 RetryCallback = Callable[[int, int, str, float], None]

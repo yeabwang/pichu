@@ -3,7 +3,6 @@ import logging
 from dataclasses import dataclass
 
 from config.config import Config
-
 from tools.mcp.client import MCPClient, MCPServerStatus
 from tools.mcp.mcp_tool import MCPTool
 from tools.registry import ToolRegistry

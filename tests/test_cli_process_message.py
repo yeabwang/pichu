@@ -11,7 +11,6 @@ import pytest
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from agent.events import AgentEvent
-
 from main import CLI
 
 

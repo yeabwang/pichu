@@ -4,12 +4,11 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from commands.base import CommandResult, SlashCommand
 from utils.session_storage import (
     SessionReferenceAmbiguousError,
     SessionReferenceNotFoundError,
 )
-
-from commands.base import CommandResult, SlashCommand
 
 if TYPE_CHECKING:
     from agent.session import Session

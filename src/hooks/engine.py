@@ -10,8 +10,6 @@ import re
 from dataclasses import dataclass
 from typing import Any
 
-from utils.runtime_logging import configure_component_file_logger
-
 from hooks.types import (
     _MATCHER_EVENTS,
     HookEvent,
@@ -21,6 +19,7 @@ from hooks.types import (
     HookMatcher,
     HookResult,
 )
+from utils.runtime_logging import configure_component_file_logger
 
 logger = logging.getLogger(__name__)
 

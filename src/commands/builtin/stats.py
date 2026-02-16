@@ -6,9 +6,8 @@ import json
 from datetime import datetime
 from typing import TYPE_CHECKING
 
-from utils.text import count_tokens
-
 from commands.base import CommandResult, SlashCommand
+from utils.text import count_tokens
 
 if TYPE_CHECKING:
     from agent.session import Session

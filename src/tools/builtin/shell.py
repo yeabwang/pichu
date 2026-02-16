@@ -21,9 +21,9 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 from pydantic import BaseModel, Field
-from utils.runtime_logging import audit_event
 
 from tools.base import Tool, ToolConfirmation, ToolInvocation, ToolKind, ToolResult
+from utils.runtime_logging import audit_event
 
 if TYPE_CHECKING:
     from config.config import Config

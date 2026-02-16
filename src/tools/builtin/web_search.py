@@ -18,6 +18,8 @@ from typing import TYPE_CHECKING, Any, Literal
 
 import httpx
 from pydantic import BaseModel, Field
+
+from tools.base import Tool, ToolConfirmation, ToolInvocation, ToolKind, ToolResult
 from utils.cache import (
     CacheMode,
     MultiRateLimiter,
@@ -36,8 +38,6 @@ from utils.web_types import (
     WebToolError,
     WebToolErrorCode,
 )
-
-from tools.base import Tool, ToolConfirmation, ToolInvocation, ToolKind, ToolResult
 
 if TYPE_CHECKING:
     from config import Config

@@ -6,6 +6,8 @@ import json
 import logging
 from typing import TYPE_CHECKING, AsyncGenerator
 
+from agent.events import AgentEvent, AgentEventType
+from agent.session import Session
 from client.models import StreamEventType, TokenUsage, ToolCall, ToolResultMessage
 from config import Config
 from hooks.types import HookEvent
@@ -18,9 +20,6 @@ from utils.loop_detector import (
     _hash_text,
 )
 from utils.text import count_tokens
-
-from agent.events import AgentEvent, AgentEventType
-from agent.session import Session
 
 if TYPE_CHECKING:
     from context.context_manager import ContextManager

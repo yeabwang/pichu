@@ -8,9 +8,8 @@ from collections.abc import MutableMapping
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from config.config import MCPServerConfig
-
 from commands.base import CommandResult, SlashCommand
+from config.config import MCPServerConfig
 
 if TYPE_CHECKING:
     from agent.session import Session

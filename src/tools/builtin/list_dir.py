@@ -18,10 +18,10 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Iterator
 
 from pydantic import BaseModel, Field
-from safety.sandbox import get_sandbox
-from utils.paths import resolve_path
 
+from safety.sandbox import get_sandbox
 from tools.base import Tool, ToolInvocation, ToolKind, ToolResult
+from utils.paths import resolve_path
 
 if TYPE_CHECKING:
     from config import Config

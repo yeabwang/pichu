@@ -9,9 +9,9 @@ from pathlib import Path
 from typing import Any
 
 from dotenv import load_dotenv
-from utils.exceptions import ConfigError
 
 from config.config import Config, set_config
+from utils.exceptions import ConfigError
 
 # Load .env file from cwd
 load_dotenv()

@@ -20,9 +20,9 @@ import logging
 from typing import Any, Literal
 
 from pydantic import BaseModel, Field
-from utils.memory_types import MemoryCategory
 
 from tools.base import Tool, ToolConfirmation, ToolInvocation, ToolKind, ToolResult
+from utils.memory_types import MemoryCategory
 
 logger = logging.getLogger(__name__)
 

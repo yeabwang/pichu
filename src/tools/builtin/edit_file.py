@@ -1,9 +1,8 @@
 from pathlib import Path
 
 from pydantic import BaseModel, Field
-from safety.sandbox import get_sandbox
-from utils.paths import ensure_parent_directory, resolve_path
 
+from safety.sandbox import get_sandbox
 from tools.base import (
     FileDiff,
     Tool,
@@ -12,6 +11,7 @@ from tools.base import (
     ToolKind,
     ToolResult,
 )
+from utils.paths import ensure_parent_directory, resolve_path
 
 
 class EditParams(BaseModel):

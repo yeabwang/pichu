@@ -14,6 +14,7 @@ from rich.syntax import Syntax
 from rich.table import Table
 from rich.text import Text
 from rich.theme import Theme
+
 from tools.base import FileDiff
 from utils.paths import display_path_relative_to_cwd
 from utils.text import truncate_text_to_token_limit

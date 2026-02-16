@@ -7,9 +7,6 @@ from pathlib import Path
 from typing import Awaitable, Callable
 
 from config.config import ApprovalConfig, ApprovalPolicy
-from tools.base import ToolConfirmation, ToolKind
-from utils.runtime_logging import audit_event
-
 from safety.approval_types import ApprovalDecision, ApprovalResponse
 from safety.command_safety import (
     command_fingerprint,
@@ -17,6 +14,8 @@ from safety.command_safety import (
     is_safe_command,
 )
 from safety.rule_engine import evaluate_rules
+from tools.base import ToolConfirmation, ToolKind
+from utils.runtime_logging import audit_event
 
 logger = logging.getLogger(__name__)
 

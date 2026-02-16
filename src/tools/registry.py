@@ -4,10 +4,9 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 from safety.approval import ApprovalDecision, ApprovalManager
-from utils.runtime_logging import audit_event
-
 from tools.base import Tool, ToolInvocation, ToolResult
 from tools.builtin import get_all_builtin_tools
+from utils.runtime_logging import audit_event
 
 if TYPE_CHECKING:
     from hooks.engine import HookEngine

@@ -3,11 +3,11 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from pydantic import BaseModel, Field
+
 from safety.sandbox import get_sandbox
+from tools.base import Tool, ToolInvocation, ToolKind, ToolResult
 from utils.paths import is_binary_file, resolve_path
 from utils.text import count_tokens, truncate_text_to_token_limit
-
-from tools.base import Tool, ToolInvocation, ToolKind, ToolResult
 
 if TYPE_CHECKING:
     from config import Config
