@@ -170,9 +170,11 @@ Configuration is loaded in this order (later sources override earlier ones):
 1. **Code defaults** — sensible baseline values
 2. **System config** — `~/.pichu/config.toml`
 3. **Project config** — `.pichu/config.toml` (searched upward from cwd)
-4. **Environment variables** — `LLM_API_KEY`, `LLM_BASE_URL`, `LLM_MODEL`, `PICHU_DEBUG`, etc.
+4. **System .env** — `~/.pichu/.env` (used for persisted keys from `/login`)
+5. **Project .env** — `.env` in the current working directory
+6. **Environment variables** — `LLM_API_KEY`, `LLM_BASE_URL`, `LLM_MODEL`, `PICHU_DEBUG`, etc.
 
-Behavior instructions for the agent are loaded from `.pichu/AGENT.md`.
+Behavior instructions for the agent are loaded from `AGENT.md` in the nearest discovered `.pichu` directory.
 
 ## Troubleshooting
 
