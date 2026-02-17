@@ -10,6 +10,8 @@ pichu
 pichu "summarize this codebase"
 ```
 
+On first interactive launch in a new directory, pichu asks you to confirm the workspace is trusted before granting file edit and shell execution capabilities.
+
 ## CLI Options
 
 ```text
