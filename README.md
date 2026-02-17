@@ -23,7 +23,7 @@
 * **Session management** — persistent transcripts, resume, rewind, and fork sessions
 * **Memory system** — global and project memory with structured retrieval
 * **Hooks & automation** — lifecycle hooks for tool use, compaction, and agent control
-* **Interactive terminal UX** — 28 slash commands for runtime control and diagnostics
+* **Interactive terminal UX** — 29 slash commands for runtime control and diagnostics
 * **Safety & reliability** — workspace trust prompt, sandboxing, approvals, retries, and audit logging
 
 ## Quick Start
@@ -34,7 +34,7 @@
    - `pichu`
 3. Configure model/provider:
    - `/login`
-4. Initialize project config:
+4. Initialize project:
    - `/init`
 
 ## Quick Demo
@@ -46,7 +46,7 @@ pichu
 # Configure model/provider inside the session
 /login
 
-# Initialize project guidance/config
+# Initialize project
 /init
 
 # Ask for a one-off task

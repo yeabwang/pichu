@@ -206,5 +206,6 @@ def test_ensure_workspace_trust_non_interactive_untrusted(monkeypatch, tmp_path)
 
     monkeypatch.setattr(main_module, "is_workspace_trusted", lambda _workspace: False)
     monkeypatch.setattr(main_module, "trust_workspace", lambda _workspace: True)
+    monkeypatch.setattr(main_module.console, "print", lambda *args, **kwargs: None)
 
     assert not cli._ensure_workspace_trust(prompt_if_needed=False)

@@ -62,7 +62,8 @@ pichu
 - If you run non-interactive mode in an untrusted workspace (for example `pichu "..."`), pichu exits safely and asks you to approve once in interactive mode first.
 
 - `/login` configures provider, model, and API key.
-- `/init` creates `AGENTS.md`, `AGENTS.local.md`, and `.pichu/config.toml` in your project.
+- `/init` bootstraps the core project scaffold and runs subsystem initializers:
+  `/agent init`, `/memory init`, `/cache init`, and `/hooks init`.
 
 ## Verify
 

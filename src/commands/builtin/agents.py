@@ -1,10 +1,11 @@
-"""List loaded sub-agents and their configurations."""
+"""Manage sub-agents and agent-level project scaffolding."""
 
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
 from commands.base import CommandResult, SlashCommand
+from commands.builtin._scaffold import ensure_gitignore_entry
 
 if TYPE_CHECKING:
     from agent.session import Session
@@ -13,12 +14,16 @@ if TYPE_CHECKING:
 
 
 class AgentsCommand(SlashCommand):
-    name = "agents"
-    description = "List loaded sub-agents"
-    usage = "/agents [name]"
-    aliases: list[str] = []
+    name = "agent"
+    description = "Manage sub-agents and AGENTS.md scaffolding"
+    usage = "/agent [init|list|name]"
+    aliases: list[str] = ["agents"]
 
     async def execute(self, args: str, session: "Session", tui: "TUI", config: "Config") -> CommandResult:
+        normalized_args = args.strip()
+        if normalized_args.lower() == "init":
+            return await self._init_agent_files(tui, config)
+
         from rich import box
         from rich.panel import Panel
         from rich.table import Table
@@ -39,7 +44,7 @@ class AgentsCommand(SlashCommand):
             return CommandResult()
 
         # If a name is given, show detail for that agent
-        target = args.strip().lower() if args.strip() else None
+        target = normalized_args.lower() if normalized_args and normalized_args.lower() != "list" else None
         if target:
             agent = loader.get_by_name(target)
             if not agent:
@@ -133,7 +138,72 @@ class AgentsCommand(SlashCommand):
         tui.console.print(f"[bold]Sub-Agents ({len(agents)})[/bold]")
         tui.console.print(table)
         tui.console.print()
-        tui.console.print("[dim]Use /agents <name> for details[/dim]")
+        tui.console.print("[dim]Use /agent <name> for details[/dim]")
         tui.console.print()
 
         return CommandResult()
+
+    async def _init_agent_files(self, tui: "TUI", config: "Config") -> CommandResult:
+        project_root = config.cwd
+        memory_config = getattr(config, "memory", None)
+        agents_file_name = getattr(memory_config, "project_agents_file", "AGENTS.md")
+        local_agents_file_name = getattr(memory_config, "local_agents_file", "AGENTS.local.md")
+        agents_file = project_root / agents_file_name
+        local_file = project_root / local_agents_file_name
+
+        created: list[str] = []
+        if not agents_file.exists():
+            project_name = project_root.name
+            agents_file.write_text(_agents_template(project_name), encoding="utf-8")
+            created.append(agents_file_name)
+
+        if not local_file.exists():
+            local_file.write_text(
+                "# Local Instructions (gitignored)\n\n## Personal Preferences\n\n## Local Environment\n\n",
+                encoding="utf-8",
+            )
+            created.append(local_agents_file_name)
+
+        gitignore_updated = ensure_gitignore_entry(project_root, local_agents_file_name, "pichu local config")
+
+        tui.console.print()
+        if created:
+            for item in created:
+                tui.console.print(f"  [success]✓[/success] Created {item}")
+        else:
+            tui.console.print("  [dim]Agent scaffolding already initialized.[/dim]")
+
+        if gitignore_updated:
+            tui.console.print(f"  [success]✓[/success] Added {local_agents_file_name} to .gitignore")
+
+        tui.console.print()
+        return CommandResult()
+
+
+def _agents_template(project_name: str) -> str:
+    return f"""# {project_name}
+
+## Architecture
+- Main runtime modules and boundaries:
+-
+
+## Tech Stack
+- Languages, frameworks, and critical infrastructure:
+-
+
+## Patterns
+- Reusable implementation patterns contributors should follow:
+-
+
+## Conventions
+- Naming, formatting, and review expectations:
+-
+
+## Gotchas
+- Known pitfalls, environment constraints, or unsafe operations:
+-
+
+## Testing
+- Commands to run and quality gates before merge:
+-
+"""
