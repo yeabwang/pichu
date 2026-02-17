@@ -7,8 +7,8 @@ name = "pichu"
 version = "0.1.0"
 description = "⚡ Pichu — code, compile, conquer"
 readme = "README.md"
-license = "MIT"
-requires-python = ">=3.11"
+license = "Apache-2.0"
+requires-python = ">=3.13"
 authors = [{ name = "Pichu Contributors" }]
 dependencies = [
     "beautifulsoup4>=4.12.3",
@@ -62,14 +62,14 @@ include = [
     "hooks*",
     "prompts*",
     "safety*",
-    "sub_agents*",
+    "subagents*",
     "tools*",
     "ui*",
     "utils*",
 ]
 
 [tool.setuptools.package-data]
-sub_agents = ["*.md"]
+subagents = ["*.md"]
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
@@ -93,7 +93,7 @@ explicit_package_bases = true
 
 # ── uv configuration ─────────────────────────────────────
 # lxml requires system libraries (libxml2-dev, libxslt1-dev) to build
-# from source on Python versions without pre-built wheels (e.g. 3.11/3.12).
+# from source on Python versions without pre-built wheels.
 # See .github/actions/setup-env/ for CI provisioning.
 [tool.uv]
 environments = ["sys_platform == 'linux'", "sys_platform == 'darwin'", "sys_platform == 'win32'"]

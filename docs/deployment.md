@@ -28,13 +28,13 @@ pipx install pichu
 ```bash
 git clone https://github.com/yeabwang/pichu.git && cd pichu
 uv venv && uv pip install -e .
-/init          # generate AGENTS.md and .pichu/config.toml in the current project
+pichu          # then run /init inside the interactive session
 
 # Or use requirements files
 git clone https://github.com/yeabwang/pichu.git && cd pichu
 uv venv
 uv pip install -r requirements.txt && uv pip install -e .
-/init          # generate AGENTS.md and .pichu/config.toml in the current project
+pichu          # then run /init inside the interactive session
 ```
 
 ### Verify
@@ -107,16 +107,24 @@ uv pip install --index-url https://test.pypi.org/simple/ pichu
 
 GitHub Actions workflow: `.github/workflows/ci.yml`
 
-The pipeline runs on every push and pull request:
+The pipeline runs on every push to `main`/`develop` and on pull requests:
 
-1. **Checkout** — `actions/checkout@v4`
-2. **Install uv** — `astral-sh/setup-uv@v5`
-3. **Setup Python** — 3.13 on `ubuntu-latest`
-4. **Install** — `uv pip install --system -e .[dev]`
-5. **Test** — `pytest -q`
-6. **Build** — `python -m build`
+| Job | Description |
+|-----|-------------|
+| **Pre-commit** | Runs all pre-commit hooks (`uv run pre-commit run --all-files`) |
+| **Lint & Format** | Ruff lint + format check |
+| **Type Check** | Mypy across all `src/` modules and `main.py` |
+| **Tests** | `pytest` with coverage on Python 3.13. Coverage uploaded to Codecov. |
+| **Security Audit** | Bandit security rules via Ruff (`ruff check --select S`) |
+| **Build Package** | `uv build` — produces sdist + wheel (requires all prior jobs to pass) |
 
-To avoid cross-filesystem hardlink warnings in CI, set:
+Environment setup uses a shared composite action (`.github/actions/setup-env/`) that installs uv, Python, system build deps (libxml2, libxslt1, zlib1g), and syncs project dependencies.
+
+Additional workflows:
+- **Dependency Review** (`.github/workflows/dependency-review.yml`) — runs on PRs to main, fails on high-severity dependency issues.
+- **Release** (`.github/workflows/release.yml`) — triggered on `v*` tags, publishes to PyPI via OIDC and creates a GitHub Release.
+
+To avoid cross-filesystem hardlink warnings in CI, the pipeline sets:
 
 ```bash
 export UV_LINK_MODE=copy
@@ -127,8 +135,6 @@ export UV_LINK_MODE=copy
 | Variable | Required | Default | Description |
 |----------|----------|---------|-------------|
 | `LLM_API_KEY` | Yes | — | API key for your LLM provider |
-| `LLM_BASE_URL` | No | OpenRouter URL | Provider API endpoint |
-| `LLM_MODEL` | No | Not set (run `/login`) | Model identifier |
 | `SERPER_API_KEY` | No | — | Web search API key |
 | `PICHU_DEBUG` | No | `false` | Enable debug logging |
 | `PICHU_PROJECT_DIR` | No | `.pichu` | Project config directory name |

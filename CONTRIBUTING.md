@@ -8,7 +8,7 @@ Thanks for helping improve Pichu.
 2. Set up the project locally:
 
 ```bash
-make install
+make dev
 ```
 
 3. Run checks before opening a PR:

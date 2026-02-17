@@ -31,21 +31,37 @@ Safety settings live in `.pichu/config.toml`:
 enabled = true
 restrict_to_cwd = true
 allowed_directories = ["/tmp"]
-block_executable_writes = true
+allow_executables = false
 
 [approval]
-default_policy = "auto-edit"  # allow | auto-edit | ask | deny
+policy = "on_request"  # on_request | on_failure | auto | auto_edit | plan | never | yolo
 ```
 
 ### Sandbox Options
 
-| Option                        | Default   | Description                                 |
-| ----------------------------- | --------- | ------------------------------------------- |
-| `enabled`                   | `true`  | Enable filesystem sandboxing                |
-| `restrict_to_cwd`           | `true`  | Limit writes to the working directory       |
-| `allowed_directories`       | `[]`    | Additional directories permitted for writes |
-| `block_executable_writes`   | `true`  | Block creation of executable files          |
-| `restrict_reads_to_allowed` | `false` | Also restrict reads to allowed directories  |
+| Option                          | Default   | Description                                        |
+| ------------------------------- | --------- | -------------------------------------------------- |
+| `enabled`                     | `true`  | Enable filesystem sandboxing                       |
+| `restrict_to_cwd`             | `true`  | Limit writes to the working directory              |
+| `allowed_directories`         | `[]`    | Additional directories permitted for writes        |
+| `allow_temp_writes`           | `false` | Allow writes to temp directories                   |
+| `allow_executables`           | `false` | Allow creation of executable files                 |
+| `restrict_reads_to_allowed_dirs` | `false` | Also restrict reads to allowed directories      |
+| `blocked_patterns`            | `[...]` | File path patterns blocked from write (e.g., `.git/hooks`, `.ssh`) |
+| `blocked_extensions`          | `[...]` | File extensions blocked from write (e.g., `.exe`, `.sh`)           |
+| `sensitive_read_patterns`     | `[...]` | Patterns that trigger sensitive-read warnings (e.g., `.env`, `.ssh/id_`) |
+
+### Approval Policy Values
+
+| Value | Description |
+|-------|-------------|
+| `on_request` | Prompt on first use of each mutating tool (default) |
+| `on_failure` | Auto-approve, prompt only on failure |
+| `auto` | Auto-approve all (except dangerous commands) |
+| `auto_edit` | Auto-approve file edits, prompt for shell/network |
+| `plan` | Read-only mode — deny all mutations |
+| `never` | Deny all unless in allow rules |
+| `yolo` | Skip all permission checks |
 
 ## Extension Points
 

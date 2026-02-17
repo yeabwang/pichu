@@ -29,7 +29,7 @@
 
 ### 1) Prerequisites
 
-- Python 3.11+
+- Python 3.13+
 - [uv](https://docs.astral.sh/uv/) (recommended)
 - An LLM API key (for example, [OpenRouter](https://openrouter.ai/))
 
@@ -65,22 +65,17 @@ export LLM_API_KEY="your-key-here"
 $env:LLM_API_KEY = "your-key-here"
 ```
 
-Optional provider/model overrides:
-
-```bash
-export LLM_BASE_URL="https://openrouter.ai/api/v1"
-export LLM_MODEL="mistralai/devstral-2512:free"
-```
+Base URL and model are configured via `/login` (stored in `~/.pichu/config.toml`).
 
 ### 4) Initialize project files
 
-Run inside your project:
+Inside a `pichu` session in your project directory, run:
 
 ```bash
 /init
 ```
 
-This generates `AGENTS.md` and `.pichu/config.toml` for the current project.
+This generates `AGENTS.md`, `AGENTS.local.md`, and `.pichu/config.toml` for the current project.
 
 ### 5) Run and validate
 
@@ -172,7 +167,7 @@ Configuration is loaded in this order (later sources override earlier ones):
 3. **Project config** — `.pichu/config.toml` (searched upward from cwd)
 4. **System .env** — `~/.pichu/.env` (used for persisted keys from `/login`)
 5. **Project .env** — `.env` in the current working directory
-6. **Environment variables** — `LLM_API_KEY`, `LLM_BASE_URL`, `LLM_MODEL`, `PICHU_DEBUG`, etc.
+6. **Environment overrides** — `LLM_API_KEY` and `PICHU_DEBUG`
 
 Behavior instructions for the agent are loaded from `AGENT.md` in the nearest discovered `.pichu` directory.
 
@@ -187,7 +182,7 @@ When something goes wrong, use this recovery flow:
 
 Common cases:
 
-- **API failures (401/403/5xx):** re-run `/login`, then confirm `LLM_API_KEY`, `LLM_BASE_URL`, and `LLM_MODEL`.
+- **API failures (401/403/5xx):** re-run `/login`, then confirm `LLM_API_KEY` and `llm.base_url` / `llm.model` in `~/.pichu/config.toml`.
 - **MCP connection issues:** run `/mcp` to inspect configured servers and connection state.
 - **Sandbox violations:** review `[safety.sandbox]` in `.pichu/config.toml` and allowed path settings.
 
@@ -196,8 +191,6 @@ Common cases:
 | Variable              | Required | Description                                        |
 | --------------------- | -------- | -------------------------------------------------- |
 | `LLM_API_KEY`       | Yes      | API key for your LLM provider                      |
-| `LLM_BASE_URL`      | No       | Provider base URL (default: OpenRouter)            |
-| `LLM_MODEL`         | No       | Model identifier                                   |
 | `SERPER_API_KEY`    | No       | API key for web search (Serper)                    |
 | `PICHU_DEBUG`       | No       | Enable debug logging (`true`/`false`)          |
 | `PICHU_PROJECT_DIR` | No       | Project config directory name (default:`.pichu`) |

@@ -30,12 +30,12 @@ class DoctorCommand(SlashCommand):
 
         # 1. Python version
         py_ver = f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}"
-        py_ok = sys.version_info >= (3, 11)
+        py_ok = sys.version_info >= (3, 13)
         checks.append(
             (
                 "Python version",
                 py_ok,
-                f"{py_ver}" + ("" if py_ok else " (3.11+ required)"),
+                f"{py_ver}" + ("" if py_ok else " (3.13+ required)"),
             )
         )
 

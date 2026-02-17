@@ -50,12 +50,27 @@ Logging settings live in `Config.logging`:
 ```toml
 [logging]
 level = "INFO"
-console = true
-file = "logs/pichu.log"
+
+[logging.console]
+enabled = false
+level = "DEBUG"
+use_rich = true
+
+[logging.file]
+enabled = true
+level = "INFO"
+path = "logs/app/pichu.log"
+max_bytes = 5242880
+backup_count = 5
 
 [logging.audit]
 enabled = true
-path = "logs/audit.log"
+level = "INFO"
+path = "logs/security/audit.log"
+json = true
+
+[logging.redaction]
+enabled = true
 ```
 
 ## Extension Points

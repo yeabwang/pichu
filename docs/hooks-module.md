@@ -48,9 +48,16 @@ from hooks import HookEngine, HookEvent, HookHandler, HookDecision
 Hooks are configured in `.pichu/config.toml`:
 
 ```toml
-[hooks.pre_tool_use.shell]
-command = "echo 'Tool: $TOOL_NAME'"
-match = ["shell", "write_file"]
+[hooks]
+disabled = false
+
+[[hooks.PreToolUse]]
+matcher = "shell|write_file"
+
+[[hooks.PreToolUse.hooks]]
+type = "command"
+command = "echo 'Tool hook fired'"
+timeout = 10
 ```
 
 ## Reliability Contracts

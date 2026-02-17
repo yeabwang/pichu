@@ -10,14 +10,14 @@ info()  { printf '\033[1;34m==>\033[0m %s\n' "$*"; }
 error() { printf '\033[1;31merror:\033[0m %s\n' "$*" >&2; exit 1; }
 
 # ── Check dependencies ──────────────────────────────────────────
-command -v python3 >/dev/null 2>&1 || error "Python 3.11+ is required. Install it first."
+command -v python3 >/dev/null 2>&1 || error "Python 3.13+ is required. Install it first."
 
 PYTHON_VERSION=$(python3 -c "import sys; print(f'{sys.version_info.major}.{sys.version_info.minor}')")
 PYTHON_MAJOR=$(echo "$PYTHON_VERSION" | cut -d. -f1)
 PYTHON_MINOR=$(echo "$PYTHON_VERSION" | cut -d. -f2)
 
-if [ "$PYTHON_MAJOR" -lt 3 ] || { [ "$PYTHON_MAJOR" -eq 3 ] && [ "$PYTHON_MINOR" -lt 11 ]; }; then
-    error "Python 3.11+ is required (found $PYTHON_VERSION)."
+if [ "$PYTHON_MAJOR" -lt 3 ] || { [ "$PYTHON_MAJOR" -eq 3 ] && [ "$PYTHON_MINOR" -lt 13 ]; }; then
+    error "Python 3.13+ is required (found $PYTHON_VERSION)."
 fi
 
 # ── Prefer uv, fall back to pip ─────────────────────────────────

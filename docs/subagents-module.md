@@ -22,6 +22,7 @@ Create a markdown file in `sub_agents/` with YAML frontmatter:
 
 ```markdown
 ---
+name: security-reviewer
 description: Reviews code for security vulnerabilities
 tools:
   - read_file
@@ -40,11 +41,16 @@ You are a security reviewer. Analyze the provided code for...
 
 | Field | Required | Description |
 |-------|----------|-------------|
+| `name` | Yes | Unique sub-agent name (lowercase letters, numbers, hyphens) |
 | `description` | Yes | What this sub-agent does (used for delegation) |
 | `tools` | No | Allowlist of tools this agent can use |
 | `disallowedTools` | No | Denylist of tools to exclude |
 | `maxTurns` | No | Maximum turns before forced stop |
 | `model` | No | Model override for this agent |
+| `skills` | No | Skills available to this sub-agent |
+| `permissionMode` | No | Permission mode override (e.g., `on_request`, `auto`) |
+| `hooks` | No | Hook configuration specific to this sub-agent |
+| `color` | No | Display color for UI differentiation |
 
 ## Runtime Flow
 

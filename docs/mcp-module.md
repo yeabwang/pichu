@@ -33,12 +33,20 @@ from tools.mcp import MCPManager, MCPClient, MCPTool, MCPServerStatus
 MCP servers are configured in `.pichu/config.toml`:
 
 ```toml
+# stdio transport (local process)
 [mcp_servers.github]
-transport = "stdio"
 command = "npx"
 args = ["-y", "@modelcontextprotocol/server-github"]
 env = { GITHUB_PERSONAL_ACCESS_TOKEN = "..." }
+
+# remote transport (SSE or HTTP)
+[mcp_servers.remote-example]
+url = "http://localhost:8000/sse"
+transport = "sse"           # "sse" | "http" | "auto"
+headers = { Authorization = "Bearer ..." }
 ```
+
+> **Note:** `transport` and `headers` can only be set when using `url` (remote servers). For stdio servers, only `command`, `args`, `env`, and `cwd` are valid.
 
 ## Tool Naming
 

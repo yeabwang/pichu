@@ -50,8 +50,9 @@ from config import Config, load_config, get_config, set_config
 3. Project config — `.pichu/config.toml` (searched upward from cwd)
 4. System `.env` — `~/.pichu/.env` (keys saved by `/login`)
 5. Project `.env` — `.env` from the current working directory
-6. Environment overrides — `LLM_API_KEY`, `LLM_BASE_URL`, `LLM_MODEL`, `PICHU_DEBUG`
-7. Developer instructions — `AGENT.md` in the nearest discovered `.pichu` directory
+6. Environment overrides — `LLM_API_KEY`, `PICHU_DEBUG`
+
+Additionally, developer instructions are loaded from `AGENT.md` in the nearest `.pichu` directory and stored in `Config.developer_instructions`.
 
 ## Typed Section Normalization
 
@@ -59,6 +60,7 @@ from config import Config, load_config, get_config, set_config
 - **MCP servers** — normalized into `MCPServerConfig` objects (stdio + remote transport, headers)
 - **Logging** — `LoggingConfig` with console/file/audit sinks and redaction policy
 - **Enum fields** (e.g., approval policy) — coerced from string values
+- **Approval policies** — `ApprovalPolicy` enum: `on_request`, `on_failure`, `auto`, `auto_edit`, `plan`, `never`, `yolo`
 
 ## Extension Points
 
