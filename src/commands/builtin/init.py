@@ -39,7 +39,7 @@ _AGENTS_TEMPLATE = """# {project_name}
 -
 """
 
-_PROJECT_CONFIG_TEMPLATE = """# Pichu project configuration
+_PROJECT_CONFIG_TEMPLATE = """# pichu project configuration
 # Tip: use /login for llm.base_url and llm.model so user-level settings stay centralized.
 
 debug = false
@@ -203,7 +203,7 @@ strip_scripts = true
 strip_styles = true
 pdf_enabled = true
 pdf_max_pages = 50
-user_agent = "Pichu/1.0"
+user_agent = "pichu/1.0"
 find_context_lines = 2
 find_max_matches = 10
 
@@ -305,7 +305,7 @@ class InitCommand(SlashCommand):
             content = gitignore.read_text(encoding="utf-8")
             if "AGENTS.local.md" not in content:
                 with open(gitignore, "a", encoding="utf-8") as f:
-                    f.write("\n# Pichu local config\nAGENTS.local.md\n")
+                    f.write("\n# pichu local config\nAGENTS.local.md\n")
                 gitignore_updated = True
 
         tui.console.print()
@@ -319,7 +319,7 @@ class InitCommand(SlashCommand):
             tui.console.print("  [success]✓[/success] Added AGENTS.local.md to .gitignore")
 
         tui.console.print()
-        tui.console.print("  [dim]Edit AGENTS.md to teach Pichu about your project.[/dim]")
+        tui.console.print("  [dim]Edit AGENTS.md to teach pichu about your project.[/dim]")
         tui.console.print("  [dim]Use AGENTS.local.md for personal preferences (gitignored).[/dim]")
         tui.console.print("  [dim]Run /login to configure provider and model.[/dim]")
         tui.console.print()

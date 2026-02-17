@@ -1,4 +1,4 @@
-"""Configuration module for Pichu."""
+"""Configuration module for pichu."""
 
 from config.config import (
     ApprovalConfig,

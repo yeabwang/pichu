@@ -4,7 +4,7 @@
 
 ## Overview
 
-The client module is the provider boundary for Pichu. It converts raw LLM responses into stable, typed events consumed by the agent runtime, keeping the orchestration loop provider-agnostic.
+The client module is the provider boundary for pichu. It converts raw LLM responses into stable, typed events consumed by the agent runtime, keeping the orchestration loop provider-agnostic.
 
 ## Public API
 

@@ -4,7 +4,7 @@
 
 ## Overview
 
-The agent module is the runtime core of Pichu. It manages the agentic loop (LLM → tools → LLM), emits structured events for UI rendering, and owns session-scoped state.
+The agent module is the runtime core of pichu. It manages the agentic loop (LLM → tools → LLM), emits structured events for UI rendering, and owns session-scoped state.
 
 ## Public API
 

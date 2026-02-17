@@ -15,7 +15,7 @@ lint:
 	uv run ruff format --check .
 
 typecheck:
-	uv run mypy $(MYPY_TARGETS)
+	uv run --extra dev mypy $(MYPY_TARGETS)
 
 test:
 	uv run pytest -q

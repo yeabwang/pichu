@@ -209,7 +209,7 @@ def create_default_config_file(path: Path | None = None) -> Path:
     # Ensure parent directory exists
     path.parent.mkdir(parents=True, exist_ok=True)
 
-    default_config = """# Pichu Configuration
+    default_config = """# pichu Configuration
 # See documentation for all options
 
 [llm]

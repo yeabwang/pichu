@@ -1,4 +1,4 @@
-"""Slash command system for Pichu interactive mode."""
+"""Slash command system for pichu interactive mode."""
 
 from pathlib import Path
 

@@ -1,6 +1,6 @@
-# Contributing to Pichu
+# Contributing to pichu
 
-Thanks for helping improve Pichu.
+Thanks for helping improve pichu.
 
 ## Getting Started
 

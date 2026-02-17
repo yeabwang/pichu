@@ -5,11 +5,11 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "pichu"
 version = "0.1.0"
-description = "⚡ Pichu — code, compile, conquer"
+description = "⚡ pichu — code, compile, conquer"
 readme = "README.md"
 license = "Apache-2.0"
 requires-python = ">=3.13"
-authors = [{ name = "Pichu Contributors" }]
+authors = [{ name = "pichu Contributors" }]
 dependencies = [
     "beautifulsoup4>=4.12.3",
     "click>=8.1.7",

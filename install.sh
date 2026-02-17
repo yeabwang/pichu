@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Pichu installer — https://github.com/yeabwang/pichu
+# pichu installer — https://github.com/yeabwang/pichu
 # Usage: curl -fsSL https://raw.githubusercontent.com/yeabwang/pichu/main/install.sh | bash
 set -euo pipefail
 
@@ -33,7 +33,7 @@ else
     error "No package installer found. Install uv (recommended): curl -LsSf https://astral.sh/uv/install.sh | sh"
 fi
 
-info "Installing Pichu with $INSTALLER..."
+info "Installing pichu with $INSTALLER..."
 
 case "$INSTALLER" in
     uv)
@@ -49,13 +49,13 @@ esac
 
 # ── Verify ──────────────────────────────────────────────────────
 if command -v pichu >/dev/null 2>&1; then
-    info "Pichu installed successfully! 🎉"
+    info "pichu installed successfully! 🎉"
     printf '\n'
     printf '  Run \033[1mpichu\033[0m to start.\n'
     printf '  Run \033[1mpichu /login\033[0m to configure your API key.\n'
     printf '\n'
 else
-    info "Pichu installed but 'pichu' is not on PATH."
+    info "pichu installed but 'pichu' is not on PATH."
     printf '  Add %s to your PATH, or run:\n' "$INSTALL_DIR"
     printf '    export PATH="%s:$PATH"\n' "$INSTALL_DIR"
 fi

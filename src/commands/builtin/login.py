@@ -201,7 +201,7 @@ class LoginCommand(SlashCommand):
     def _write_fresh_toml(path: Path, base_url: str, model: str) -> None:
         """Write a minimal config.toml with provider settings (no secrets)."""
         content = (
-            "# Pichu Configuration\n"
+            "# pichu Configuration\n"
             "# Run /login again to update, or edit this file directly.\n"
             "# API keys are stored in .env (same directory).\n\n"
             "[llm]\n"

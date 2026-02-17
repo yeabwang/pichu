@@ -1,4 +1,4 @@
-"""Health check for Pichu installation."""
+"""Health check for pichu installation."""
 
 from __future__ import annotations
 

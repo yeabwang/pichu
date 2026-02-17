@@ -4,7 +4,7 @@
 
 ## Overview
 
-The tools subsystem is the execution control plane for Pichu. It defines tool contracts, registers built-in and MCP tools, applies guardrails (hooks + approvals), and executes tool calls with consistent result semantics.
+The tools subsystem is the execution control plane for pichu. It defines tool contracts, registers built-in and MCP tools, applies guardrails (hooks + approvals), and executes tool calls with consistent result semantics.
 
 ## Architecture
 

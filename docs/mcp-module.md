@@ -4,7 +4,7 @@
 
 ## Overview
 
-The MCP module integrates external [Model Context Protocol](https://modelcontextprotocol.io/) servers into Pichu so remote and local tools appear in the same runtime tool registry as built-in tools.
+The MCP module integrates external [Model Context Protocol](https://modelcontextprotocol.io/) servers into pichu so remote and local tools appear in the same runtime tool registry as built-in tools.
 
 ## Public API
 

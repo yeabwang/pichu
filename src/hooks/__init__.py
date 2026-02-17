@@ -1,4 +1,4 @@
-"""Hook system for Pichu.
+"""Hook system for pichu.
 
 Hooks are user-defined shell commands that execute at specific lifecycle
 points, providing deterministic control over agent behavior.

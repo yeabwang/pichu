@@ -38,7 +38,7 @@ class StatusCommand(SlashCommand):
         table.add_column("Value", style="accent", min_width=30)
 
         # App info
-        table.add_row("Pichu version", _get_version())
+        table.add_row("pichu version", _get_version())
         table.add_row(
             "Python",
             f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}",

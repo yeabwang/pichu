@@ -1,4 +1,4 @@
-"""Centralized configuration for Pichu."""
+"""Centralized configuration for pichu."""
 
 from __future__ import annotations
 
@@ -730,7 +730,7 @@ class WebFetchConfig:
     strip_styles: bool = True
 
     # User agent
-    user_agent: str = "Pichu/1.0"
+    user_agent: str = "pichu/1.0"
 
     # Find action settings
     find_context_lines: int = 2  # Lines before/after match

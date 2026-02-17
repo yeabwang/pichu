@@ -26,7 +26,7 @@ Describe what actually happened.
 
 - OS:
 - Python version:
-- Pichu version/commit:
+- pichu version/commit:
 
 ## Additional Context
 

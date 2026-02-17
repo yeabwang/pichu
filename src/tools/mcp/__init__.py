@@ -1,4 +1,4 @@
-"""MCP (Model Context Protocol) integration for Pichu.
+"""MCP (Model Context Protocol) integration for pichu.
 
 This module provides tools and clients for interacting with MCP servers,
 enabling external tool integration through the Model Context Protocol.

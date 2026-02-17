@@ -1,13 +1,13 @@
 <p align="center">
-  <img src="assets/logo.png" alt="Pichu Logo" width="200" /><br/>
-  <strong>⚡ Pichu — code, compile, conquer.</strong><br/>
+  <img src="assets/logo.png" alt="pichu Logo" width="200" /><br/>
+  <strong>⚡ pichu — code, compile, conquer.</strong><br/>
   Coding agent that lives in your terminal.
 </p>
 
 ---
 
 <p align="center">
-  <img src="assets/demo.gif" alt="Pichu Demo" />
+  <img src="assets/demo.gif" alt="pichu Demo" />
 </p>
 
 ## Features
@@ -102,7 +102,7 @@ pichu [PROMPT]              Run interactively, or execute a single prompt
 
 ## Commands
 
-Pichu includes 28 slash commands for runtime control. Type `/help` inside a session for the full list.
+pichu includes 28 slash commands for runtime control. Type `/help` inside a session for the full list.
 
 | Command          | Description                                      |
 | ---------------- | ------------------------------------------------ |
@@ -206,6 +206,8 @@ Option A (recommended): use uv project sync + Makefile workflow
 git clone https://github.com/yeabwang/pichu.git
 cd pichu
 
+uv venv
+
 uv sync --extra dev
 uv run pre-commit install
 ```
@@ -251,7 +253,7 @@ uv run pytest -q
 
 ### Project Bootstrap
 
-Inside a Pichu session, run `/init` to generate a full `.pichu/config.toml` baseline and project guidance files. If these files are missing, startup now prompts you to run `/init`.
+Inside a pichu session, run `/init` to generate a full `.pichu/config.toml` baseline and project guidance files. If these files are missing, startup now prompts you to run `/init`.
 
 ### Build
 

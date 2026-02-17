@@ -20,7 +20,7 @@ Share relevant settings, command, or snippets (remove secrets).
 
 - OS:
 - Python version:
-- Pichu version/commit:
+- pichu version/commit:
 
 ## Logs or Output
 

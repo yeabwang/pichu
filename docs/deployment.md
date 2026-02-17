@@ -88,7 +88,24 @@ docker run --rm -it `
 
 ## PyPI Publishing
 
-Build and upload to PyPI:
+### Automatic stable releases from GitHub Releases
+
+The repository is configured to publish to PyPI when a **non-draft, non-prerelease** GitHub Release is published.
+
+One-time setup:
+
+1. Create a `release` environment in your GitHub repository settings (if it does not already exist).
+2. In PyPI, add this repository as a Trusted Publisher for the project:
+   - **Owner**: your GitHub org/user
+   - **Repository**: `pichu`
+   - **Workflow file**: `.github/workflows/release.yml`
+   - **Environment name**: `release`
+3. Ensure `pyproject.toml` `project.version` matches the release tag (for example, tag `v0.1.1` for version `0.1.1`).
+4. Publish a GitHub Release with a `v*` tag to trigger the workflow.
+
+### Manual upload (fallback)
+
+Build and upload to PyPI manually:
 
 ```bash
 uv pip install build twine
@@ -122,7 +139,7 @@ Environment setup uses a shared composite action (`.github/actions/setup-env/`) 
 
 Additional workflows:
 - **Dependency Review** (`.github/workflows/dependency-review.yml`) — runs on PRs to main, fails on high-severity dependency issues.
-- **Release** (`.github/workflows/release.yml`) — triggered on `v*` tags, publishes to PyPI via OIDC and creates a GitHub Release.
+- **Release** (`.github/workflows/release.yml`) — triggered when a GitHub Release is published, publishes to PyPI via OIDC for stable releases.
 
 To avoid cross-filesystem hardlink warnings in CI, the pipeline sets:
 

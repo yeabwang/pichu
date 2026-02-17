@@ -197,7 +197,7 @@ class WebFetchTool(Tool):
     def _user_agent(self) -> str:
         if self._fetch_config:
             return self._fetch_config.user_agent
-        return "Pichu/1.0"
+        return "pichu/1.0"
 
     @property
     def _verify_ssl(self) -> bool:

@@ -1,7 +1,7 @@
 """
 Memory Types - Core data structures for the memory system.
 
-This module defines the fundamental types for Pichu's persistent memory:
+This module defines the fundamental types for pichu's persistent memory:
 - Memory: Individual memory items with metadata
 - MemoryCategory: Classification of memory types
 - MemoryStore: Collection of memories with search capabilities
