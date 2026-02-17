@@ -57,6 +57,10 @@ pichu
 /init
 ```
 
+- On first interactive launch in a new folder, pichu shows a workspace trust confirmation before allowing file edits and shell execution.
+- Trust is saved per workspace in `~/.pichu/trusted_workspaces.json`.
+- If you run non-interactive mode in an untrusted workspace (for example `pichu "..."`), pichu exits safely and asks you to approve once in interactive mode first.
+
 - `/login` configures provider, model, and API key.
 - `/init` creates `AGENTS.md`, `AGENTS.local.md`, and `.pichu/config.toml` in your project.
 

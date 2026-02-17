@@ -25,6 +25,7 @@ Both installers support:
 - automatic PATH persistence for future shells
 - automatic `pichu` alias persistence
 - idempotent PATH and alias setup messages
+- workspace trust confirmation on first interactive launch in a new folder
 
 ### Package managers
 
