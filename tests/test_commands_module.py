@@ -207,17 +207,31 @@ async def test_help_lists_all_registered_builtin_commands():
 
 
 @pytest.mark.asyncio
-async def test_init_writes_full_project_config_without_login_managed_model_settings(tmp_path):
+async def test_init_orchestrates_modular_scaffolding_without_login_managed_model_settings(tmp_path):
     command = InitCommand()
     result = await command.execute("", session=object(), tui=_ConsoleTUI(), config=_DummyConfig(cwd=tmp_path))
     assert result.error is None
 
     config_path = tmp_path / ".pichu" / "config.toml"
     assert config_path.exists()
+    assert (tmp_path / "AGENTS.md").exists()
+    assert (tmp_path / "AGENTS.local.md").exists()
+    assert (tmp_path / ".pichu" / "memory" / "state.json").exists()
+    assert (tmp_path / ".pichu" / "memory" / "cursor.json").exists()
+    assert (tmp_path / ".pichu" / "cache" / "web_cache.db").exists()
+    assert (tmp_path / ".pichu" / "hooks" / "log_tool_use.py").exists()
+    assert (tmp_path / ".pichu" / "hooks" / "auto_format.py").exists()
+    assert (tmp_path / ".pichu" / "hooks" / "block_dangerous.py").exists()
+    assert (tmp_path / ".pichu" / "hooks" / "protect_files.py").exists()
 
     config_text = config_path.read_text(encoding="utf-8")
     assert "[limits]" in config_text
-    assert "[web_search]" in config_text
-    assert "[web_fetch]" in config_text
+    assert "[[hooks.PreToolUse]]" in config_text
+    assert "[[hooks.PostToolUse]]" in config_text
+    assert "[web_search]" not in config_text
+    assert "[web_fetch]" not in config_text
     assert 'base_url = "' not in config_text
     assert 'model = "' not in config_text
+
+    second_result = await command.execute("", session=object(), tui=_ConsoleTUI(), config=_DummyConfig(cwd=tmp_path))
+    assert second_result.error is None

@@ -97,7 +97,11 @@ class CLI:
         model_display = self._config.model if model_configured else "Not set (use /login to set your model)"
 
         missing_bootstrap_files = self._get_missing_bootstrap_files()
-        tips = "/help for commands • /exit to quit"
+        tips = (
+            "/help for commands • /exit to quit • /init to initalize project"
+            if not missing_bootstrap_files
+            else "/help for commands • /exit to quit"
+        )
         if missing_bootstrap_files:
             tips = f"{tips} • /init to generate project files"
 
