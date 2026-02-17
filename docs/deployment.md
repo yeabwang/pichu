@@ -84,7 +84,7 @@ docker run --rm -it `
 
 - The workspace is mounted at `/workspace` inside the container.
 - `.env` files are excluded from the image via `.dockerignore` — pass secrets as environment variables.
-- The image uses `python:3.13-slim` as its base.
+- The image uses `python:3.11-slim` as its base.
 
 ## PyPI Publishing
 
@@ -131,7 +131,7 @@ The pipeline runs on every push to `main`/`develop` and on pull requests:
 | **Pre-commit** | Runs all pre-commit hooks (`uv run pre-commit run --all-files`) |
 | **Lint & Format** | Ruff lint + format check |
 | **Type Check** | Mypy across all `src/` modules and `main.py` |
-| **Tests** | `pytest` with coverage on Python 3.13. Coverage uploaded to Codecov. |
+| **Tests** | `pytest` with coverage on Python 3.11. Coverage uploaded to Codecov. |
 | **Security Audit** | Bandit security rules via Ruff (`ruff check --select S`) |
 | **Build Package** | `uv build` — produces sdist + wheel (requires all prior jobs to pass) |
 

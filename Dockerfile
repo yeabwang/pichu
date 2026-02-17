@@ -1,5 +1,5 @@
 # ── Build stage ───────────────────────────────────────────
-FROM python:3.13-slim AS builder
+FROM python:3.11-slim AS builder
 
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /usr/local/bin/
 
@@ -16,7 +16,7 @@ RUN uv venv /opt/venv \
  && VIRTUAL_ENV=/opt/venv uv pip install .
 
 # ── Runtime stage ─────────────────────────────────────────
-FROM python:3.13-slim
+FROM python:3.11-slim
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \

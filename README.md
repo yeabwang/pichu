@@ -29,7 +29,7 @@
 
 ### 1) Prerequisites
 
-- Python 3.13+
+- Python 3.11+
 - [uv](https://docs.astral.sh/uv/) (recommended)
 - An LLM API key (for example, [OpenRouter](https://openrouter.ai/))
 

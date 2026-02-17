@@ -4,11 +4,11 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "pichu"
-version = "0.1.0"
+version = "0.1.1"
 description = "⚡ pichu — code, compile, conquer"
 readme = "README.md"
 license = "Apache-2.0"
-requires-python = ">=3.13"
+requires-python = ">=3.11"
 authors = [{ name = "pichu Contributors" }]
 dependencies = [
     "beautifulsoup4>=4.12.3",
@@ -75,7 +75,7 @@ subagents = ["*.md"]
 asyncio_mode = "auto"
 
 [tool.ruff]
-target-version = "py313"
+target-version = "py311"
 line-length = 120
 
 [tool.ruff.lint]
@@ -83,7 +83,7 @@ select = ["E", "F", "W", "I"]
 ignore = ["E501"]
 
 [tool.mypy]
-python_version = "3.13"
+python_version = "3.11"
 ignore_missing_imports = true
 check_untyped_defs = false
 disallow_untyped_defs = false
