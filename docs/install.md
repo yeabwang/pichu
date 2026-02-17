@@ -3,28 +3,51 @@
 ## Prerequisites
 
 - Python 3.11+
-- [uv](https://docs.astral.sh/uv/) (recommended)
 - LLM provider API key
 
 ## Install
 
-### Option A (Recommended): uv tool install
+### Recommended: one-line installer (auto setup)
 
-```bash
-uv tool install pichu
-```
-
-### Option B: pip
-
-```bash
-pip install pichu
-```
-
-### Option C: Linux/macOS installer script
+Linux / macOS:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/yeabwang/pichu/main/install.sh | bash
 ```
+
+Windows PowerShell:
+
+```powershell
+irm https://raw.githubusercontent.com/yeabwang/pichu/main/install.ps1 | iex
+```
+
+Windows CMD:
+
+```cmd
+curl -fsSL https://raw.githubusercontent.com/yeabwang/pichu/main/install.cmd -o install.cmd && install.cmd
+```
+
+The installer automatically:
+
+- installs with `uv`, `pipx`, or `pip` (in that order)
+- saves the install directory to your user PATH
+- saves a `pichu` command alias in your shell/profile
+- prints a clear “restart your shell” message when needed
+
+### Package manager alternatives
+
+```bash
+# uv (recommended)
+uv tool install pichu
+
+# pipx
+pipx install pichu
+
+# pip
+pip install pichu
+```
+
+If `pichu` is not found after install, restart your shell once.
 
 ## First Run
 

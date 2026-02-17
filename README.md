@@ -30,6 +30,7 @@
 
 1. Install pichu (recommended: uv tool install):
    - See [docs/install.md](docs/install.md)
+   - Script installers (Linux/macOS + Windows) auto-configure PATH and the `pichu` alias
 2. Launch:
    - `pichu`
 3. Configure model/provider:
@@ -40,9 +41,6 @@
 ## Quick Demo
 
 ```bash
-# install
-pip install pichu
-
 # Start interactive mode
 pichu
 
