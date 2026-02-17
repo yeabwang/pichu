@@ -1,7 +1,11 @@
 <p align="center">
   <img src="assets/logo.png" alt="pichu Logo" width="200" /><br/>
   <strong>⚡ pichu — code, compile, conquer.</strong><br/>
-  Coding agent that lives in your terminal.
+  Open-source coding agent that lives in your terminal.<br/>
+  <br/>
+  <a href="https://github.com/yeabwang/pichu/stargazers">⭐ Star</a> •
+  <a href="https://github.com/yeabwang/pichu/issues">Report Bug</a> •
+  <a href="https://github.com/yeabwang/pichu/pulls">Submit PR</a>
 </p>
 
 ---
@@ -79,6 +83,17 @@ pichu "explain this repo"
 - [Task Management](docs/task-management.md) — task system architecture
 - [Tool Management](docs/tool-management.md) — tool registry and execution
 - [Utils Module](docs/utils-module.md) — shared runtime utilities
+
+## Support the Project
+
+If you find this project useful:
+
+- ⭐ Star it on GitHub to show support
+- 🐛 Open issues to report bugs or suggest features
+- 🔧 Submit a PR to improve the project
+- 💡 Share it with others who might benefit
+
+Contributions of any size are welcome.
 
 ## License
 
