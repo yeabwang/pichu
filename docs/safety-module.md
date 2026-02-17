@@ -21,6 +21,8 @@ The safety module is the central guardrail layer for mutating tool execution and
 - `Session` initializes the filesystem sandbox from config at session startup.
 - Tool invocation approval is enforced by `tools.registry` via `ApprovalManager`.
 - File and search tools call sandbox checks before reading or writing.
+- Interactive startup enforces a workspace trust confirmation before enabling agent write/execute behavior in a new folder.
+- Trusted workspace decisions are persisted in `~/.pichu/trusted_workspaces.json`.
 
 ## Configuration
 

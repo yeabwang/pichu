@@ -29,6 +29,7 @@ from utils.session_storage import (
     SessionReferenceNotFoundError,
     SessionStorage,
 )
+from utils.workspace_trust import is_workspace_trusted, trust_workspace
 
 BANNER = """
 ⢰⣶⣤⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀     ⢀⢀
@@ -77,6 +78,9 @@ class CLI:
         return await loop.run_in_executor(None, self.tui.prompt_tool_approval, confirmation)
 
     async def run_single(self, message: str) -> str | None:
+        if not self._ensure_workspace_trust(prompt_if_needed=sys.stdin.isatty()):
+            return None
+
         async with Agent(self._config) as agent:
             self.agent = agent
             # Wire the approval callback
@@ -86,6 +90,9 @@ class CLI:
             return await self._process_message(message)
 
     async def run_interactive(self) -> None:
+        if not self._ensure_workspace_trust(prompt_if_needed=True):
+            return
+
         model_configured = self._is_model_configured()
         model_display = self._config.model if model_configured else "Not set (use /login to set your model)"
 
@@ -177,6 +184,29 @@ class CLI:
                 except (KeyboardInterrupt, EOFError):
                     self.tui.print_goodbye("Session ended. Happy coding!")
                     break
+
+    def _ensure_workspace_trust(self, prompt_if_needed: bool) -> bool:
+        workspace = Path(self._config.cwd).resolve()
+        if is_workspace_trusted(workspace):
+            return True
+
+        if not prompt_if_needed:
+            console.print(
+                "[error]Workspace is not trusted yet.[/error] "
+                "Run interactive mode once and confirm trust for this folder."
+            )
+            return False
+
+        trusted = self.tui.prompt_workspace_trust(workspace)
+        if not trusted:
+            self.tui.print_goodbye("Workspace not trusted. Exiting for safety.")
+            return False
+
+        if not trust_workspace(workspace):
+            console.print(
+                "[warning]Could not persist workspace trust decision. You'll be prompted again next launch.[/warning]"
+            )
+        return True
 
     def _get_missing_bootstrap_files(self) -> list[str]:
         project_dir_name = os.environ.get("PICHU_PROJECT_DIR", ".pichu")

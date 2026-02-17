@@ -751,6 +751,27 @@ class TUI:
         self.console.print()
         self.console.print(panel)
 
+    def prompt_workspace_trust(self, workspace: Path) -> bool:
+        """Prompt user to confirm the workspace is trusted."""
+        self.console.print()
+        self.console.print(Rule(style="border"))
+        self.console.print("\n[bold] Accessing workspace:[/bold]\n")
+        self.console.print(f" [path]{workspace.resolve()}[/path]\n")
+        self.console.print(
+            " Quick safety check: Is this a project you created or one you trust? "
+            "If not, review files in this folder first.\n"
+        )
+        self.console.print(" pichu will be able to read, edit, and execute files here.\n")
+        self.console.print(" [dim]Security guide: review unfamiliar files before allowing access.[/dim]\n")
+
+        options = [
+            (True, "Yes, I trust this folder"),
+            (False, "No, exit"),
+        ]
+        trusted = self._interactive_select(options, default_index=0)
+        self.console.print()
+        return bool(trusted)
+
     def print_goodbye(self, message: str) -> None:
         self.console.print()
         self.console.print(Rule(style="border.muted"))

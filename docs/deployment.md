@@ -10,6 +10,23 @@
 curl -fsSL https://raw.githubusercontent.com/yeabwang/pichu/main/install.sh | bash
 ```
 
+### One-line install (Windows PowerShell)
+
+```powershell
+irm https://raw.githubusercontent.com/yeabwang/pichu/main/install.ps1 | iex
+```
+
+```cmd
+curl -fsSL https://raw.githubusercontent.com/yeabwang/pichu/main/install.cmd -o install.cmd && install.cmd
+```
+
+Both installers support:
+- automatic installer selection (`uv`, then `pipx`, then `pip`)
+- automatic PATH persistence for future shells
+- automatic `pichu` alias persistence
+- idempotent PATH and alias setup messages
+- workspace trust confirmation on first interactive launch in a new folder
+
 ### Package managers
 
 ```bash

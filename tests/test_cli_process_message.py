@@ -133,3 +133,78 @@ def test_is_model_configured_false_without_env_or_config_model(tmp_path, monkeyp
     cli._config = type("Cfg", (), {"cwd": tmp_path})()
 
     assert not cli._is_model_configured()
+
+
+def test_ensure_workspace_trust_denies_untrusted_workspace(monkeypatch, tmp_path):
+    import main as main_module
+
+    cli = CLI.__new__(CLI)
+    cli._config = type("Cfg", (), {"cwd": tmp_path})()
+
+    class _TrustPromptTUI:
+        def __init__(self):
+            self.goodbye_message = None
+
+        def prompt_workspace_trust(self, _workspace):
+            return False
+
+        def print_goodbye(self, message: str):
+            self.goodbye_message = message
+
+    cli.tui = _TrustPromptTUI()
+
+    monkeypatch.setattr(main_module, "is_workspace_trusted", lambda _workspace: False)
+    monkeypatch.setattr(main_module, "trust_workspace", lambda _workspace: True)
+
+    assert not cli._ensure_workspace_trust(prompt_if_needed=True)
+    assert cli.tui.goodbye_message == "Workspace not trusted. Exiting for safety."
+
+
+def test_ensure_workspace_trust_persists_acceptance(monkeypatch, tmp_path):
+    import main as main_module
+
+    cli = CLI.__new__(CLI)
+    cli._config = type("Cfg", (), {"cwd": tmp_path})()
+
+    class _TrustPromptTUI:
+        def prompt_workspace_trust(self, _workspace):
+            return True
+
+        def print_goodbye(self, _message: str):
+            raise AssertionError("goodbye should not be called for trusted workspace")
+
+    cli.tui = _TrustPromptTUI()
+
+    called = {"saved": False}
+
+    monkeypatch.setattr(main_module, "is_workspace_trusted", lambda _workspace: False)
+
+    def _record_trust(_workspace):
+        called["saved"] = True
+        return True
+
+    monkeypatch.setattr(main_module, "trust_workspace", _record_trust)
+
+    assert cli._ensure_workspace_trust(prompt_if_needed=True)
+    assert called["saved"]
+
+
+def test_ensure_workspace_trust_non_interactive_untrusted(monkeypatch, tmp_path):
+    import main as main_module
+
+    cli = CLI.__new__(CLI)
+    cli._config = type("Cfg", (), {"cwd": tmp_path})()
+
+    class _TrustPromptTUI:
+        def prompt_workspace_trust(self, _workspace):
+            raise AssertionError("prompt should not be shown in non-interactive mode")
+
+        def print_goodbye(self, _message: str):
+            raise AssertionError("goodbye should not be printed for non-interactive refusal")
+
+    cli.tui = _TrustPromptTUI()
+
+    monkeypatch.setattr(main_module, "is_workspace_trusted", lambda _workspace: False)
+    monkeypatch.setattr(main_module, "trust_workspace", lambda _workspace: True)
+
+    assert not cli._ensure_workspace_trust(prompt_if_needed=False)
