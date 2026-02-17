@@ -60,8 +60,8 @@ function Test-AliasName([string]$AliasName) {
         return
     }
 
-    if ($AliasName -notmatch "^[A-Za-z][A-Za-z0-9_-]{0,31}$") {
-        Fail "Invalid alias '$AliasName'. Use 1-32 chars: letters, numbers, _ or -, starting with a letter."
+    if ($AliasName -notmatch "^[A-Za-z](?:[A-Za-z0-9_-]{0,30}[A-Za-z0-9_])?$") {
+        Fail "Invalid alias '$AliasName'. Use 1-32 chars: letters, numbers, _ or -, starting with a letter and not ending with '-'."
     }
 
     $reserved = @(
@@ -253,11 +253,11 @@ function Ensure-AliasEntry([string]$AliasName) {
         }
     }
 
-    $block = @"
+    $block = @'
 # >>> pichu alias >>>
-Set-Alias -Name $AliasName -Value pichu
+Set-Alias -Name {0} -Value pichu
 # <<< pichu alias <<<
-"@
+'@ -f $AliasName
     Add-Content -Path $script:profileFile -Value "`n$block`n"
     Set-Alias -Name $AliasName -Value pichu -ErrorAction SilentlyContinue
     $script:aliasAdded = $true

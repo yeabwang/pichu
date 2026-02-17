@@ -55,8 +55,8 @@ validate_alias() {
         return
     fi
 
-    if ! [[ "$REQUESTED_ALIAS" =~ ^[A-Za-z][A-Za-z0-9_-]{0,31}$ ]]; then
-        error "Invalid alias '$REQUESTED_ALIAS'. Use 1-32 chars: letters, numbers, _ or -, starting with a letter."
+    if ! [[ "$REQUESTED_ALIAS" =~ ^[A-Za-z]([A-Za-z0-9_-]{0,30}[A-Za-z0-9_])?$ ]]; then
+        error "Invalid alias '$REQUESTED_ALIAS'. Use 1-32 chars: letters, numbers, _ or -, starting with a letter and not ending with '-'."
     fi
 
     case "$REQUESTED_ALIAS" in

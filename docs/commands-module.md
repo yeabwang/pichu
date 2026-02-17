@@ -4,7 +4,7 @@
 
 ## Overview
 
-The commands module owns the `/command` system used in interactive sessions. It supports 28 built-in commands, alias resolution, fuzzy suggestions, and markdown-backed custom commands.
+The commands module owns the `/command` system used in interactive sessions. It supports 29 built-in commands, alias resolution, fuzzy suggestions, and markdown-backed custom commands.
 
 ## Architecture
 
@@ -21,6 +21,18 @@ The commands module owns the `/command` system used in interactive sessions. It 
 2. Built-in commands are registered first.
 3. Custom commands are loaded (global `~/.pichu/commands/`, then project `.pichu/commands/` overrides).
 4. `CommandRouter.dispatch(...)` resolves command name or alias and executes the handler.
+
+## Modular Scaffolding Commands
+
+Project scaffolding follows a modular ownership model:
+
+- `/init` is a lightweight orchestrator.
+- `/agent init` owns AGENTS file scaffolding (`AGENTS.md`, `AGENTS.local.md`, gitignore entry).
+- `/memory init` owns memory storage scaffolding (`.pichu/memory/` state/cursor).
+- `/cache init` owns cache scaffolding (`.pichu/cache/web_cache.db`).
+- `/hooks init` owns hook script/config scaffolding (`.pichu/hooks/*` + config hook handlers).
+
+Each init command is idempotent and can be run independently.
 
 ## Creating a New Built-in Command
 
