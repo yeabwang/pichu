@@ -29,13 +29,9 @@
 ## Quick Start
 
 1. Install pichu (recommended: one-line installer):
-   - Linux/macOS: `curl -fsSL https://raw.githubusercontent.com/yeabwang/pichu/main/install.sh | bash`
-   - Windows PowerShell: `irm https://raw.githubusercontent.com/yeabwang/pichu/main/install.ps1 | iex`
    - See [docs/install.md](docs/install.md)
-   - Script installers (Linux/macOS + Windows) auto-configure PATH and the `pichu` alias
 2. Launch:
    - `pichu`
-   - On first launch in a new folder, confirm the workspace trust prompt
 3. Configure model/provider:
    - `/login`
 4. Initialize project config:
