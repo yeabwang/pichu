@@ -1,14 +1,37 @@
 <p align="center">
-  <img src="assets/logo.png" alt="pichu Logo" width="200" /><br/>
-  <strong>⚡ pichu — code, compile, conquer.</strong><br/>
-  Open-source coding agent that lives in your terminal.<br/>
-  <br/>
-  <a href="https://github.com/yeabwang/pichu/stargazers">⭐ Star</a> •
-  <a href="https://github.com/yeabwang/pichu/issues">Report Bug</a> •
-  <a href="https://github.com/yeabwang/pichu/pulls">Submit PR</a>
+  <img src="assets/logo.png" alt="pichu Logo" width="200"><br>
+
+  <h1 align="center">⚡ pichu</h1>
+
+  <p align="center">
+    <strong>Code, compile, conquer.</strong><br>
+    Open-source coding agent that lives in your terminal.
+  </p>
+
+  <!-- Badges -->
+  <p align="center">
+    <img src="https://static.pepy.tech/personalized-badge/pichu?period=total&units=INTERNATIONAL_SYSTEM&left_color=black&right_color=green&left_text=downloads">
+    <img src="https://img.shields.io/pypi/v/pichu">
+    <img src="https://img.shields.io/github/license/yeabwang/pichu">
+    <img src="https://img.shields.io/github/stars/yeabwang/pichu?style=social">
+  </p>
+
+  <!-- Links -->
+  <p align="center">
+    <a href="https://github.com/yeabwang/pichu">Home</a> •
+    <a href="https://github.com/yeabwang/pichu/stargazers">Star</a> •
+    <a href="https://github.com/yeabwang/pichu/issues">Report Bug</a> •
+    <a href="https://github.com/yeabwang/pichu/pulls">Submit PR</a> •
+    <a href="https://pypi.org/project/pichu/">PyPI</a>
+  </p>
 </p>
 
 ---
+
+<p align="center">
+  <em>Lightweight. Deterministic. Hackable.</em>
+</p>
+
 
 <p align="center">
   <img src="assets/demo.gif" alt="pichu Demo" />
