@@ -29,11 +29,6 @@
 ---
 
 <p align="center">
-  <em>Lightweight. Deterministic. Hackable.</em>
-</p>
-
-
-<p align="center">
   <img src="assets/demo.gif" alt="pichu Demo" />
 </p>
 
