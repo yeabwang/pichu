@@ -10,7 +10,7 @@
 
   <!-- Badges -->
   <p align="center">
-    <img src="https://static.pepy.tech/personalized-badge/pichu?period=total&units=INTERNATIONAL_SYSTEM&left_color=black&right_color=green&left_text=downloads">
+    <img src="https://assets.piptrends.com/get-last-week-downloads-badge/pichu.svg">
     <img src="https://img.shields.io/pypi/v/pichu">
     <img src="https://img.shields.io/github/license/yeabwang/pichu">
     <img src="https://img.shields.io/github/stars/yeabwang/pichu?style=social">

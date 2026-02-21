@@ -103,38 +103,30 @@ function Get-PythonVersion {
 }
 
 function Select-Installer {
-    if (Get-Command uv -ErrorAction SilentlyContinue) {
-        return "uv"
+    if (-not (Get-Command uv -ErrorAction SilentlyContinue)) {
+        Write-Info "uv not found. Installing uv..."
+        & powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
+        if ($LASTEXITCODE -ne 0 -or -not $?) {
+            Fail "Failed to install uv."
+        }
+
+        $userPath = [Environment]::GetEnvironmentVariable("Path", "User")
+        $machinePath = [Environment]::GetEnvironmentVariable("Path", "Machine")
+        $env:Path = (@($userPath, $machinePath, $env:Path) | Where-Object { -not [string]::IsNullOrWhiteSpace($_) }) -join ";"
     }
-    if (Get-Command pipx -ErrorAction SilentlyContinue) {
-        return "pipx"
+
+    if (-not (Get-Command uv -ErrorAction SilentlyContinue)) {
+        Fail "uv was installed but is not available in PATH. Restart PowerShell and try again."
     }
-    if (Get-Command pip -ErrorAction SilentlyContinue) {
-        return "pip"
-    }
-    if (Get-Command py -ErrorAction SilentlyContinue) {
-        return "py-pip"
-    }
-    return $null
+
+    return "uv"
 }
 
 function Install-Pichu([string]$Installer) {
     Write-Info "Installing pichu with $Installer..."
     switch ($Installer) {
         "uv" {
-            & uv tool install "pichu @ git+https://github.com/$repo.git"
-            return
-        }
-        "pipx" {
-            & pipx install "git+https://github.com/$repo.git"
-            return
-        }
-        "pip" {
-            & pip install --user "git+https://github.com/$repo.git"
-            return
-        }
-        "py-pip" {
-            & py -m pip install --user "git+https://github.com/$repo.git"
+            & uv tool install --reinstall "pichu @ git+https://github.com/$repo.git"
             return
         }
         default {
