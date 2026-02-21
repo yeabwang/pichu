@@ -11,7 +11,7 @@
   <!-- Badges -->
   <p align="center">
     <img src="https://assets.piptrends.com/get-last-week-downloads-badge/pichu.svg">
-    <img src="https://img.shields.io/pypi/v/pichu">
+    <img src="https://badge.fury.io/py/pichu.svg">
     <img src="https://img.shields.io/github/license/yeabwang/pichu">
     <img src="https://img.shields.io/github/stars/yeabwang/pichu?style=social">
   </p>
