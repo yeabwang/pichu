@@ -35,6 +35,7 @@ make clean
 
 ```bash
 uv run pytest -q
+uv run pytest -q tests/test_ui_capabilities.py tests/test_ui_input.py tests/test_ui_render.py tests/test_ui_runtime_phase4.py
 uv build
 ```
 
@@ -52,5 +53,6 @@ This generates baseline project guidance and config files.
 
 - [Deployment Guide](deployment.md)
 - [Config Module](config-module.md)
+- [UI Module](ui-module.md)
 - [Tool Management](tool-management.md)
 - [Task Management](task-management.md)

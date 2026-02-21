@@ -5,12 +5,13 @@
 ## Overview
 
 The commands module owns the `/command` system used in interactive sessions. It supports 29 built-in commands, alias resolution, fuzzy suggestions, and markdown-backed custom commands.
+Command handlers return `CommandResult` and can provide `CommandDisplayPayload` for richer UI rendering.
 
 ## Architecture
 
 | Component | Responsibility |
 |-----------|---------------|
-| `commands.base` | `SlashCommand` interface, `CommandSpec` metadata, `CommandRegistry` |
+| `commands.base` | `SlashCommand` interface, `CommandSpec` metadata, `CommandRegistry`, `CommandDisplayPayload` |
 | `commands.router` | Parses `/command args`, dispatches, returns `CommandResult` |
 | `commands.builtin` | Built-in command catalog and registration |
 | `commands.custom_loader` | Loads markdown-backed custom commands from global and project scopes |
@@ -37,7 +38,7 @@ Each init command is idempotent and can be run independently.
 ## Creating a New Built-in Command
 
 ```python
-from commands.base import SlashCommand, CommandResult
+from commands.base import CommandDisplayPayload, CommandResult, SlashCommand
 
 class MyCommand(SlashCommand):
     name = "mycommand"
@@ -45,9 +46,12 @@ class MyCommand(SlashCommand):
     usage = "/mycommand [args]"
     aliases = ["mc"]
 
-    async def execute(self, args: str, *, session, tui, config) -> CommandResult:
+    async def execute(self, args: str, session, tui, config) -> CommandResult:
         # Implement your command logic
-        return CommandResult(output="Done!")
+        return CommandResult(
+            output="Done!",
+            display=CommandDisplayPayload(renderables=["Done!"]),
+        )
 ```
 
 Built-in commands are discovered automatically from `commands/builtin/*.py` when they subclass `SlashCommand`.

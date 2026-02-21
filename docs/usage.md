@@ -36,6 +36,22 @@ pichu [PROMPT]
 
 Use `/help` in-session for the full command list.
 
+## Interactive UI Updates
+
+- Slash command completion is fuzzy and alias-aware (for example, `/aut` resolves to `/login`).
+- `@` path completion works both at the beginning of input and in mid-sentence prompts.
+- Prompt key bindings:
+  - `Enter` submits the prompt
+  - `Esc` + `Enter` inserts a newline
+  - `Ctrl+S` submits the prompt
+  - `Esc` interrupts a running agent in interactive TTY mode
+- Set `AGENT_UI_KEYMAP=vi` to switch to vi editing mode (default is emacs).
+
+## Runtime Status Footer
+
+In interactive terminals, pichu shows a live footer with task counts and background runtime progress (`queued`, `active`, and progress messages).
+In non-interactive or dumb terminals, live UI components are disabled and output falls back to plain console rendering.
+
 ## Configuration Loading Order
 
 Later sources override earlier ones:

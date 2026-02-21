@@ -117,7 +117,7 @@ One-time setup:
    - **Repository**: `pichu`
    - **Workflow file**: `.github/workflows/release.yml`
    - **Environment name**: `release`
-3. Ensure `pyproject.toml` `project.version` matches the release tag (for example, tag `v0.1.1` for version `0.1.1`).
+3. Ensure `pyproject.toml` `project.version` matches the release tag (for example, tag `v0.1.2` for version `0.1.2`).
 4. Publish a GitHub Release with a `v*` tag to trigger the workflow.
 
 ### Manual upload (fallback)
