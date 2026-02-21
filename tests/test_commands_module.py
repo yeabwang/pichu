@@ -20,6 +20,7 @@ from commands.builtin import (
 from commands.builtin.clear import ClearCommand
 from commands.builtin.help import HelpCommand
 from commands.builtin.init import InitCommand
+from commands.builtin.sessions import SessionsCommand
 from commands.custom_loader import CustomSlashCommand, load_custom_commands
 from commands.router import CommandRouter
 
@@ -187,6 +188,22 @@ def test_builtin_registry_includes_all_builtin_command_classes():
 
     registered = {command.__name__ for command in BUILTIN_COMMANDS}
     assert discovered == registered
+
+
+def test_sessions_resume_guidance_uses_cli_entrypoint():
+    command = SessionsCommand()
+    match = type("Match", (), {"session_id": "abcdef1234567890", "turn_count": 3})()
+
+    class _Storage:
+        def resolve_session_reference(self, target_id: str, cwd: str | None = None):
+            return match
+
+    result = command._handle_resume("abcdef12", storage=_Storage(), tui=_DummyTUI(), cwd=None)
+
+    assert result.display is not None
+    lines = [str(line) for line in result.display.renderables]
+    assert any("pichu --resume abcdef12" in line for line in lines)
+    assert not any("python main.py --resume" in line for line in lines)
 
 
 @pytest.mark.asyncio

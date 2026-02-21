@@ -206,6 +206,12 @@ class InputManager:
     def set_footer_provider(self, footer_provider: Callable[[], str] | None) -> None:
         self._footer_provider = footer_provider
 
+    def refresh_footer(self) -> None:
+        app = getattr(self._session, "app", None)
+        if app is None or not getattr(app, "is_running", False):
+            return
+        app.invalidate()
+
     def set_interrupt_handler(self, interrupt_handler: Callable[[], None] | None) -> None:
         self._interrupt_handler = interrupt_handler
 

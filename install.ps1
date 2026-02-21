@@ -102,21 +102,62 @@ function Get-PythonVersion {
     return $null
 }
 
+function Refresh-ProcessPath {
+    $userPath = [Environment]::GetEnvironmentVariable("Path", "User")
+    $machinePath = [Environment]::GetEnvironmentVariable("Path", "Machine")
+    $env:Path = (@($userPath, $machinePath, $env:Path) | Where-Object { -not [string]::IsNullOrWhiteSpace($_) }) -join ";"
+}
+
+function Install-UvFromPackageManager {
+    if (Get-Command winget -ErrorAction SilentlyContinue) {
+        Write-Info "Installing uv with winget..."
+        & winget install --id astral-sh.uv --exact --silent --accept-package-agreements --accept-source-agreements
+        if ($LASTEXITCODE -eq 0 -and $?) {
+            Refresh-ProcessPath
+            if (Get-Command uv -ErrorAction SilentlyContinue) {
+                return $true
+            }
+        }
+        Write-Warn "winget install for uv did not succeed."
+    }
+
+    if (Get-Command scoop -ErrorAction SilentlyContinue) {
+        Write-Info "Installing uv with scoop..."
+        & scoop install uv
+        if ($LASTEXITCODE -eq 0 -and $?) {
+            Refresh-ProcessPath
+            if (Get-Command uv -ErrorAction SilentlyContinue) {
+                return $true
+            }
+        }
+        Write-Warn "scoop install for uv did not succeed."
+    }
+
+    if (Get-Command choco -ErrorAction SilentlyContinue) {
+        Write-Info "Installing uv with chocolatey..."
+        & choco install uv -y
+        if ($LASTEXITCODE -eq 0 -and $?) {
+            Refresh-ProcessPath
+            if (Get-Command uv -ErrorAction SilentlyContinue) {
+                return $true
+            }
+        }
+        Write-Warn "chocolatey install for uv did not succeed."
+    }
+
+    return $false
+}
+
 function Select-Installer {
     if (-not (Get-Command uv -ErrorAction SilentlyContinue)) {
-        Write-Info "uv not found. Installing uv..."
-        & powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
-        if ($LASTEXITCODE -ne 0 -or -not $?) {
-            Fail "Failed to install uv."
+        Write-Info "uv not found. Attempting package-manager install (winget, scoop, chocolatey)..."
+        if (-not (Install-UvFromPackageManager)) {
+            Fail "Failed to install uv automatically. Install uv manually from https://docs.astral.sh/uv/getting-started/installation/ and rerun."
         }
-
-        $userPath = [Environment]::GetEnvironmentVariable("Path", "User")
-        $machinePath = [Environment]::GetEnvironmentVariable("Path", "Machine")
-        $env:Path = (@($userPath, $machinePath, $env:Path) | Where-Object { -not [string]::IsNullOrWhiteSpace($_) }) -join ";"
     }
 
     if (-not (Get-Command uv -ErrorAction SilentlyContinue)) {
-        Fail "uv was installed but is not available in PATH. Restart PowerShell and try again."
+        Fail "uv installation completed but uv is not available in PATH. Restart PowerShell and try again."
     }
 
     return "uv"
@@ -327,7 +368,7 @@ if ($major -lt 3 -or ($major -eq 3 -and $minor -lt 11)) {
 
 $installer = Select-Installer
 if ([string]::IsNullOrWhiteSpace($installer)) {
-    Fail "No package installer found. Install uv (recommended): powershell -ExecutionPolicy ByPass -c `"irm https://astral.sh/uv/install.ps1 | iex`""
+    Fail "No package installer found. Install uv manually from https://docs.astral.sh/uv/getting-started/installation/."
 }
 
 Install-Pichu $installer

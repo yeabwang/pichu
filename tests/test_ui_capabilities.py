@@ -10,6 +10,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from config.config import Config
 from ui.capabilities.detection import is_color_supported, is_dumb_terminal, is_interactive_tty
+from ui.runtime.task_runner import RuntimeEventType, RuntimeStatusEvent
 from ui.tui import TUI
 
 
@@ -86,3 +87,23 @@ def test_non_tty_does_not_activate_rich_live(monkeypatch, tmp_path):
     tui.flush_deferred_ui(force=True)
     assert tui._renderer is not None
     assert tui._renderer._footer_live is None
+
+
+def test_tui_footer_updates_refresh_prompt_footer_if_input_manager_present(monkeypatch, tmp_path):
+    from ui import tui as tui_module
+
+    monkeypatch.setattr(tui_module, "is_interactive_tty", lambda: False)
+    tui = TUI(console=Console(file=io.StringIO(), force_terminal=False), config=Config(cwd=tmp_path))
+
+    class _InputManagerStub:
+        def __init__(self) -> None:
+            self.refresh_calls = 0
+
+        def refresh_footer(self) -> None:
+            self.refresh_calls += 1
+
+    stub = _InputManagerStub()
+    tui._input_manager = stub
+    tui.update_task_footer({"in_progress": 1, "available": 0, "blocked": 0, "completed": 0})
+    tui.update_runtime_status(RuntimeStatusEvent(task_id="rt-1", operation="bg", event_type=RuntimeEventType.QUEUED))
+    assert stub.refresh_calls == 2

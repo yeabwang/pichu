@@ -11,7 +11,7 @@ from rich.theme import Theme
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from ui.output import renderer as renderer_module
-from ui.output.renderer import DifferentialRichRenderer, RenderState
+from ui.output.renderer import DifferentialRichRenderer, RenderState, RuntimeProgressState
 
 _TEST_THEME = Theme({"agent": "white", "streaming": "white"})
 
@@ -110,6 +110,13 @@ def test_footer_refresh_waits_until_stream_ends(monkeypatch):
     renderer._agent_stream_active = False
     renderer.flush_deferred_updates()
     assert dummy_live.update_calls == 1
+
+
+def test_runtime_progress_text_uses_active_label():
+    state = RuntimeProgressState(active=2, queued=1, progress_current=1, progress_total=3, last_message="working")
+    text = state.to_text()
+    assert text.startswith("active 2")
+    assert "bg active" not in text
 
 
 def test_begin_agent_response_marks_stream_active():

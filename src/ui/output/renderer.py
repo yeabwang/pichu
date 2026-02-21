@@ -75,7 +75,7 @@ class RuntimeProgressState:
         return before != after
 
     def to_text(self) -> str:
-        segments: list[str] = [f"bg active {self.active}"]
+        segments: list[str] = [f"active {self.active}"]
         if self.queued:
             segments.append(f"queued {self.queued}")
         if self.progress_total and self.progress_current is not None:

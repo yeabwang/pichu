@@ -74,6 +74,21 @@ class TUI(TUIEventRouterMixin):
     def _input_footer_text(self) -> str:
         return self._renderer.footer_text()
 
+    def _refresh_input_footer(self) -> None:
+        if not self._input_manager:
+            return
+        refresh_footer = getattr(self._input_manager, "refresh_footer", None)
+        if callable(refresh_footer):
+            refresh_footer()
+
+    def update_task_footer(self, stats: dict[str, Any]) -> None:
+        self._renderer.update_task_footer(stats)
+        self._refresh_input_footer()
+
+    def update_runtime_status(self, event: Any) -> None:
+        self._renderer.update_runtime_status(event)
+        self._refresh_input_footer()
+
     def set_command_specs(self, specs: list["CommandSpec"]) -> None:
         if not self._input_manager:
             return

@@ -30,8 +30,8 @@ def truncate_text_to_token_limit(
     model: str = "gpt-3.5-turbo",
     preserve_lines: bool = True,
 ) -> str:
-    # Token count is always <= character count, so short strings are always under limit.
-    if len(text) <= max_tokens:
+    # Conservative fast path: token count cannot exceed UTF-8 byte length.
+    if len(text.encode("utf-8")) <= max_tokens:
         return text
 
     current_token_count = count_tokens(text, model=model)

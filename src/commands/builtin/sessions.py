@@ -138,7 +138,7 @@ class SessionsCommand(SlashCommand):
             display=CommandDisplayPayload(
                 renderables=[
                     "[yellow]To resume this session, restart with:[/yellow]",
-                    f"  [bold]python main.py --resume {match.session_id[:8]}[/bold]",
+                    f"  [bold]pichu --resume {match.session_id[:8]}[/bold]",
                     "[dim]Mid-session resume is not yet supported. Exit first, then use the flag above.[/dim]",
                 ]
             )
