@@ -1,8 +1,10 @@
+from functools import lru_cache
 from typing import Callable
 
 import tiktoken
 
 
+@lru_cache(maxsize=32)
 def get_tokenizer(model: str = "gpt-3.5-turbo") -> Callable[[str], list[int]]:
     try:
         encoding = tiktoken.encoding_for_model(model)
@@ -28,6 +30,10 @@ def truncate_text_to_token_limit(
     model: str = "gpt-3.5-turbo",
     preserve_lines: bool = True,
 ) -> str:
+    # Token count is always <= character count, so short strings are always under limit.
+    if len(text) <= max_tokens:
+        return text
+
     current_token_count = count_tokens(text, model=model)
     if current_token_count <= max_tokens:
         return text

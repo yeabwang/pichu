@@ -5,8 +5,11 @@ from __future__ import annotations
 import sys
 from pathlib import Path
 
+import pytest
+
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
+from safety.approval import ApprovalDecision
 from tools.base import Tool, ToolInvocation, ToolKind, ToolResult
 from tools.registry import ToolRegistry
 
@@ -25,6 +28,15 @@ class _DummyTool(Tool):
 
     async def execute(self, invocation: ToolInvocation) -> ToolResult:
         return ToolResult.success_result(output="ok")
+
+
+class _CountingApprovalManager:
+    def __init__(self) -> None:
+        self.calls = 0
+
+    async def check_and_approve(self, confirmation) -> ApprovalDecision:
+        self.calls += 1
+        return ApprovalDecision.APPROVED
 
 
 def test_select_tools_respects_allow_and_deny_with_normalized_names():
@@ -55,3 +67,37 @@ def test_select_tools_can_exclude_mcp_tools():
         "read_file",
         "mcp__github__search_code",
     ]
+
+
+@pytest.mark.asyncio
+async def test_invoke_skips_approval_for_task_crud_tools():
+    registry = ToolRegistry()
+    registry.register_tool(_DummyTool("task_create", kind=ToolKind.MEMORY))
+    approval_manager = _CountingApprovalManager()
+
+    result = await registry.invoke(
+        "task_create",
+        params={},
+        cwd=Path.cwd(),
+        approval_manager=approval_manager,
+    )
+
+    assert result.success
+    assert approval_manager.calls == 0
+
+
+@pytest.mark.asyncio
+async def test_invoke_still_checks_approval_for_other_mutating_tools():
+    registry = ToolRegistry()
+    registry.register_tool(_DummyTool("memory_write", kind=ToolKind.MEMORY))
+    approval_manager = _CountingApprovalManager()
+
+    result = await registry.invoke(
+        "memory_write",
+        params={},
+        cwd=Path.cwd(),
+        approval_manager=approval_manager,
+    )
+
+    assert result.success
+    assert approval_manager.calls == 1
