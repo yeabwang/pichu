@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from commands.base import CommandResult, SlashCommand
+from commands.base import CommandDisplayPayload, CommandResult, SlashCommand
 
 if TYPE_CHECKING:
     from agent.session import Session
@@ -26,9 +26,13 @@ class RenameCommand(SlashCommand):
         if not title:
             current = session.get_title()
             if current:
-                tui.console.print(f"[dim]Current title:[/dim] {current}")
+                return CommandResult(
+                    error="Usage: /rename <title>",
+                    display=CommandDisplayPayload(renderables=[f"[dim]Current title:[/dim] {current}"]),
+                )
             return CommandResult(error="Usage: /rename <title>")
 
         session.set_title(title)
-        tui.console.print(f"[green]✓[/green] Session renamed to: [bold]{title}[/bold]")
-        return CommandResult()
+        return CommandResult(
+            display=CommandDisplayPayload(renderables=[f"[green]✓[/green] Session renamed to: [bold]{title}[/bold]"])
+        )

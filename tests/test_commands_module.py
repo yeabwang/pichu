@@ -17,8 +17,10 @@ from commands.builtin import (
     build_builtin_commands,
     register_all_commands,
 )
+from commands.builtin.clear import ClearCommand
 from commands.builtin.help import HelpCommand
 from commands.builtin.init import InitCommand
+from commands.builtin.sessions import SessionsCommand
 from commands.custom_loader import CustomSlashCommand, load_custom_commands
 from commands.router import CommandRouter
 
@@ -64,6 +66,14 @@ class _NoopConsole:
 class _ConsoleTUI:
     def __init__(self) -> None:
         self.console = _NoopConsole()
+
+
+class _DummyContextManager:
+    def __init__(self) -> None:
+        self.cleared = False
+
+    def clear(self) -> None:
+        self.cleared = True
 
 
 def _write_custom_command(path: Path, name: str, body: str) -> None:
@@ -180,6 +190,22 @@ def test_builtin_registry_includes_all_builtin_command_classes():
     assert discovered == registered
 
 
+def test_sessions_resume_guidance_uses_cli_entrypoint():
+    command = SessionsCommand()
+    match = type("Match", (), {"session_id": "abcdef1234567890", "turn_count": 3})()
+
+    class _Storage:
+        def resolve_session_reference(self, target_id: str, cwd: str | None = None):
+            return match
+
+    result = command._handle_resume("abcdef12", storage=_Storage(), tui=_DummyTUI(), cwd=None)
+
+    assert result.display is not None
+    lines = [str(line) for line in result.display.renderables]
+    assert any("pichu --resume abcdef12" in line for line in lines)
+    assert not any("python main.py --resume" in line for line in lines)
+
+
 @pytest.mark.asyncio
 async def test_help_lists_all_registered_builtin_commands():
     registry = CommandRegistry()
@@ -235,3 +261,43 @@ async def test_init_orchestrates_modular_scaffolding_without_login_managed_model
 
     second_result = await command.execute("", session=object(), tui=_ConsoleTUI(), config=_DummyConfig(cwd=tmp_path))
     assert second_result.error is None
+
+
+@pytest.mark.asyncio
+async def test_clear_command_returns_structured_display_payload():
+    command = ClearCommand()
+    cm = _DummyContextManager()
+    session = type("Session", (), {"context_manager": cm})()
+
+    result = await command.execute("", session=session, tui=_ConsoleTUI(), config=object())
+
+    assert result.error is None
+    assert result.should_clear
+    assert result.display is None
+    assert cm.cleared
+
+
+def test_builtin_command_modules_do_not_call_console_print_directly():
+    builtin_dir = Path(__file__).parent.parent / "src" / "commands" / "builtin"
+    violations: list[str] = []
+    for file_path in sorted(builtin_dir.glob("*.py")):
+        if file_path.name == "__init__.py":
+            continue
+        module = ast.parse(file_path.read_text(encoding="utf-8"))
+        for node in ast.walk(module):
+            if not isinstance(node, ast.Call):
+                continue
+            func = node.func
+            if isinstance(func, ast.Attribute) and func.attr == "print":
+                owner = func.value
+                if isinstance(owner, ast.Name) and owner.id == "console":
+                    violations.append(file_path.name)
+                elif (
+                    isinstance(owner, ast.Attribute)
+                    and owner.attr == "console"
+                    and isinstance(owner.value, ast.Name)
+                    and owner.value.id == "tui"
+                ):
+                    violations.append(file_path.name)
+
+    assert not violations, f"Direct console.print usage found: {sorted(set(violations))}"

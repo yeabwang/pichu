@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from commands.base import CommandResult, SlashCommand
+from commands.base import CommandDisplayPayload, CommandResult, SlashCommand
 from utils.session_storage import (
     SessionReferenceAmbiguousError,
     SessionReferenceNotFoundError,
@@ -65,8 +65,11 @@ class SessionsCommand(SlashCommand):
             sessions = [m for m in sessions if m.turn_count > 0 or m.session_id == current_id]
 
         if not sessions:
-            tui.console.print("[dim]No saved sessions found. Use /sessions all to include empty ones.[/dim]")
-            return CommandResult()
+            return CommandResult(
+                display=CommandDisplayPayload(
+                    renderables=["[dim]No saved sessions found. Use /sessions all to include empty ones.[/dim]"]
+                )
+            )
 
         table = Table(title="Saved Sessions", show_lines=False)
         table.add_column("ID", style="cyan", max_width=10)
@@ -107,12 +110,17 @@ class SessionsCommand(SlashCommand):
                 meta.branch or "",
             )
 
-        tui.console.print(table)
-        tui.console.print(
-            "[dim]Commands: /sessions resume <id> · /sessions delete <id> · "
-            "/sessions all · --continue / --resume <id>[/dim]"
+        return CommandResult(
+            display=CommandDisplayPayload(
+                renderables=[
+                    table,
+                    (
+                        "[dim]Commands: /sessions resume <id> · /sessions delete <id> · "
+                        "/sessions all · --continue / --resume <id>[/dim]"
+                    ),
+                ]
+            )
         )
-        return CommandResult()
 
     def _handle_resume(self, target_id: str, storage, tui, cwd: str | None) -> CommandResult:
         """Handle /sessions resume <id>."""
@@ -126,10 +134,15 @@ class SessionsCommand(SlashCommand):
         if match.turn_count == 0:
             return CommandResult(error=f"Session {target_id[:8]} is empty (0 turns). Nothing to resume.")
 
-        tui.console.print("[yellow]To resume this session, restart with:[/yellow]")
-        tui.console.print(f"  [bold]python main.py --resume {match.session_id[:8]}[/bold]")
-        tui.console.print("[dim]Mid-session resume is not yet supported. Exit first, then use the flag above.[/dim]")
-        return CommandResult()
+        return CommandResult(
+            display=CommandDisplayPayload(
+                renderables=[
+                    "[yellow]To resume this session, restart with:[/yellow]",
+                    f"  [bold]pichu --resume {match.session_id[:8]}[/bold]",
+                    "[dim]Mid-session resume is not yet supported. Exit first, then use the flag above.[/dim]",
+                ]
+            )
+        )
 
     def _handle_delete(self, target_id: str, session, storage, tui, cwd: str | None) -> CommandResult:
         """Handle /sessions delete <id>."""
@@ -146,10 +159,13 @@ class SessionsCommand(SlashCommand):
         deleted = storage.delete_session(match.session_id)
         if deleted:
             title = match.title or "untitled"
-            tui.console.print(f"[green]✓[/green] Deleted session [cyan]{match.session_id[:8]}[/cyan] ({title})")
+            return CommandResult(
+                display=CommandDisplayPayload(
+                    renderables=[f"[green]✓[/green] Deleted session [cyan]{match.session_id[:8]}[/cyan] ({title})"]
+                )
+            )
         else:
             return CommandResult(error=f"Failed to delete session {target_id[:8]}.")
-        return CommandResult()
 
     def _format_ambiguity(self, exc: SessionReferenceAmbiguousError) -> str:
         sample = ", ".join(meta.session_id[:8] for meta in exc.matches[:5])

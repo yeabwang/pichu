@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from commands.base import CommandResult, SlashCommand
+from commands.base import CommandDisplayPayload, CommandResult, SlashCommand
 
 if TYPE_CHECKING:
     from agent.session import Session
@@ -97,18 +97,15 @@ class CostCommand(SlashCommand):
             padding=(1, 1),
         )
 
-        tui.console.print()
-        tui.console.print(panel)
-
+        renderables: list[str | object] = ["", panel]
         # Budget status if available
         budget = session.get_budget_status()
         if budget:
-            tui.console.print(
+            renderables.append(
                 f"  [dim]Web budget: searches {budget['searches']} · "
                 f"fetches {budget['fetches']} · bytes {budget['bytes']}[/dim]"
             )
 
-        tui.console.print(f"  [dim]Turns: {session.turn_count}  ·  Model: {config.model}[/dim]")
-        tui.console.print()
-
-        return CommandResult()
+        renderables.append(f"  [dim]Turns: {session.turn_count}  ·  Model: {config.model}[/dim]")
+        renderables.append("")
+        return CommandResult(display=CommandDisplayPayload(renderables=renderables))

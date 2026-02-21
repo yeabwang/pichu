@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from commands.base import CommandResult, SlashCommand
+from commands.base import CommandDisplayPayload, CommandResult, SlashCommand
 
 if TYPE_CHECKING:
     from agent.session import Session
@@ -35,10 +35,9 @@ class TasksCommand(SlashCommand):
         if subcommand == "summary":
             summary = session.get_task_summary()
             if not summary:
-                tui.console.print()
-                tui.console.print("[dim]No tasks in current list.[/dim]")
-                tui.console.print()
-                return CommandResult()
+                return CommandResult(
+                    display=CommandDisplayPayload(renderables=["", "[dim]No tasks in current list.[/dim]", ""])
+                )
 
             panel = Panel(
                 summary,
@@ -46,19 +45,21 @@ class TasksCommand(SlashCommand):
                 border_style="border",
                 padding=(1, 1),
             )
-            tui.console.print()
-            tui.console.print(panel)
-            tui.console.print()
-            return CommandResult()
+            return CommandResult(display=CommandDisplayPayload(renderables=["", panel, ""]))
 
         # Default: list all tasks
         tasks = list(tm.get_all_tasks())
         if not tasks:
-            tui.console.print()
-            tui.console.print(f"[dim]No tasks in list '{tm.list_id}'.[/dim]")
-            tui.console.print("[dim]Tasks are created by the agent during conversations.[/dim]")
-            tui.console.print()
-            return CommandResult()
+            return CommandResult(
+                display=CommandDisplayPayload(
+                    renderables=[
+                        "",
+                        f"[dim]No tasks in list '{tm.list_id}'.[/dim]",
+                        "[dim]Tasks are created by the agent during conversations.[/dim]",
+                        "",
+                    ]
+                )
+            )
 
         table = Table(
             box=box.SIMPLE_HEAVY,
@@ -101,15 +102,19 @@ class TasksCommand(SlashCommand):
         in_progress = sum(1 for t in tasks if t.status == "in_progress")
         completed = sum(1 for t in tasks if t.status == "completed")
 
-        tui.console.print()
-        tui.console.print(
-            f"[bold]Tasks ({len(tasks)})[/bold]  "
-            f"[yellow]{pending} pending[/yellow]  "
-            f"[blue]{in_progress} active[/blue]  "
-            f"[green]{completed} done[/green]"
+        return CommandResult(
+            display=CommandDisplayPayload(
+                renderables=[
+                    "",
+                    (
+                        f"[bold]Tasks ({len(tasks)})[/bold]  "
+                        f"[yellow]{pending} pending[/yellow]  "
+                        f"[blue]{in_progress} active[/blue]  "
+                        f"[green]{completed} done[/green]"
+                    ),
+                    f"[dim]List: {tm.list_id}[/dim]",
+                    table,
+                    "",
+                ]
+            )
         )
-        tui.console.print(f"[dim]List: {tm.list_id}[/dim]")
-        tui.console.print(table)
-        tui.console.print()
-
-        return CommandResult()

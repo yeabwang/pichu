@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import asyncio
+import io
 import sys
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -17,12 +19,15 @@ from main import CLI
 @dataclass
 class _DummyTUI:
     context_updates: list[dict] = field(default_factory=list)
+    task_footer_updates: list[dict] = field(default_factory=list)
+    streamed_chunks: list[str] = field(default_factory=list)
+    agent_running_updates: list[bool] = field(default_factory=list)
 
     def begin_agent_response(self) -> None:
         return None
 
     def stream_agent_delta(self, content: str) -> None:
-        return None
+        self.streamed_chunks.append(content)
 
     def end_agent_response(self) -> None:
         return None
@@ -47,6 +52,15 @@ class _DummyTUI:
 
     def update_context_tracker(self, stats: dict) -> None:
         self.context_updates.append(stats)
+
+    def update_task_footer(self, stats: dict) -> None:
+        self.task_footer_updates.append(stats)
+
+    def flush_deferred_ui(self, force: bool = False) -> None:
+        return None
+
+    def set_agent_running(self, is_agent_running: bool) -> None:
+        self.agent_running_updates.append(is_agent_running)
 
     def print_approval_denied(self, tool_name: str, reason: str) -> None:
         return None
@@ -86,6 +100,23 @@ class _DummyAgentWithContextStats:
         yield AgentEvent.from_text_complete("ok")
 
 
+class _DummyAgentWithTaskListUpdate:
+    async def run(self, prompt: str):
+        yield AgentEvent.task_list_updated(total=7, completed=2, in_progress=1, available=3, blocked=1)
+        yield AgentEvent.from_text_complete("ok")
+
+
+class _DummyAgentWithInterrupt:
+    def __init__(self, cli: CLI):
+        self._cli = cli
+
+    async def run(self, prompt: str):
+        yield AgentEvent.from_text_delta("first")
+        self._cli._interrupt_event.set()
+        yield AgentEvent.from_text_delta("second")
+        yield AgentEvent.from_text_complete("done")
+
+
 @pytest.mark.asyncio
 async def test_process_message_returns_text_response():
     cli = CLI.__new__(CLI)
@@ -109,6 +140,61 @@ async def test_process_message_updates_context_tracker_from_context_stats_event(
     assert cli.tui.context_updates == [{"total_tokens": 10, "context_limit": 100, "percentage": 10.0}]
 
 
+@pytest.mark.asyncio
+async def test_process_message_updates_task_footer_from_task_list_event():
+    cli = CLI.__new__(CLI)
+    cli.agent = _DummyAgentWithTaskListUpdate()
+    cli.tui = _DummyTUI()
+    cli._get_tool_kind = lambda _name: "unknown"
+
+    response = await cli._process_message("ping")
+    assert response == "ok"
+    assert cli.tui.task_footer_updates == [{"total": 7, "completed": 2, "in_progress": 1, "available": 3, "blocked": 1}]
+
+
+@pytest.mark.asyncio
+async def test_process_message_task_list_event_updates_footer_render_state(tmp_path):
+    from rich.console import Console
+
+    from config.config import Config
+    from ui.tui import AGENT_THEME, TUI
+
+    cli = CLI.__new__(CLI)
+    cli.agent = _DummyAgentWithTaskListUpdate()
+    cli.tui = TUI(
+        console=Console(file=io.StringIO(), force_terminal=False, width=100, theme=AGENT_THEME, highlight=False),
+        config=Config(cwd=tmp_path),
+    )
+    cli._get_tool_kind = lambda _name: "unknown"
+
+    response = await cli._process_message("ping")
+    assert response == "ok"
+    assert cli.tui._render_state.task_footer.to_text() == "Tasks: in-progress 1 • ready 3 • blocked 1 • done 2"
+
+
+@pytest.mark.asyncio
+async def test_process_message_interrupt_event_stops_stream_and_prints_interrupted(monkeypatch):
+    import pichu_main as main_module
+
+    cli = CLI.__new__(CLI)
+    cli._interrupt_event = asyncio.Event()
+    cli.tui = _DummyTUI()
+    cli.agent = _DummyAgentWithInterrupt(cli)
+    cli._get_tool_kind = lambda _name: "unknown"
+    cli._runtime_runner = None
+
+    printed: list[str] = []
+    monkeypatch.setattr(main_module.console, "print", lambda *args, **kwargs: printed.append(str(args[0])))
+
+    response = await cli._process_message("ping")
+
+    assert response is None
+    assert cli.tui.streamed_chunks == ["first"]
+    assert cli.tui.agent_running_updates == [True, False]
+    assert not cli._interrupt_event.is_set()
+    assert any("Interrupted." in line for line in printed)
+
+
 def test_config_has_llm_model_detects_model_entry(tmp_path):
     config_path = tmp_path / "config.toml"
     config_path.write_text('[llm]\nmodel = "openai/gpt-4.1"\n', encoding="utf-8")
@@ -122,7 +208,7 @@ def test_is_model_configured_false_without_env_or_config_model(tmp_path, monkeyp
     system_config = tmp_path / "system.toml"
     system_config.write_text("[llm]\nbase_url = 'https://example.com'\n", encoding="utf-8")
 
-    import main as main_module
+    import pichu_main as main_module
 
     monkeypatch.delenv("LLM_MODEL", raising=False)
     monkeypatch.setenv("PICHU_PROJECT_DIR", ".pichu")
@@ -136,7 +222,7 @@ def test_is_model_configured_false_without_env_or_config_model(tmp_path, monkeyp
 
 
 def test_ensure_workspace_trust_denies_untrusted_workspace(monkeypatch, tmp_path):
-    import main as main_module
+    import pichu_main as main_module
 
     cli = CLI.__new__(CLI)
     cli._config = type("Cfg", (), {"cwd": tmp_path})()
@@ -161,7 +247,7 @@ def test_ensure_workspace_trust_denies_untrusted_workspace(monkeypatch, tmp_path
 
 
 def test_ensure_workspace_trust_persists_acceptance(monkeypatch, tmp_path):
-    import main as main_module
+    import pichu_main as main_module
 
     cli = CLI.__new__(CLI)
     cli._config = type("Cfg", (), {"cwd": tmp_path})()
@@ -190,7 +276,7 @@ def test_ensure_workspace_trust_persists_acceptance(monkeypatch, tmp_path):
 
 
 def test_ensure_workspace_trust_non_interactive_untrusted(monkeypatch, tmp_path):
-    import main as main_module
+    import pichu_main as main_module
 
     cli = CLI.__new__(CLI)
     cli._config = type("Cfg", (), {"cwd": tmp_path})()
@@ -209,3 +295,46 @@ def test_ensure_workspace_trust_non_interactive_untrusted(monkeypatch, tmp_path)
     monkeypatch.setattr(main_module.console, "print", lambda *args, **kwargs: None)
 
     assert not cli._ensure_workspace_trust(prompt_if_needed=False)
+
+
+def test_clear_terminal_if_supported_calls_console_clear_for_interactive_tty():
+    cli = CLI.__new__(CLI)
+
+    class _Console:
+        def __init__(self) -> None:
+            self.clear_calls = 0
+
+        def clear(self) -> None:
+            self.clear_calls += 1
+
+    console = _Console()
+    cli.tui = type("TUIStub", (), {"_interactive_tty": True, "console": console})()
+
+    cli._clear_terminal_if_supported()
+
+    assert console.clear_calls == 1
+
+
+def test_clear_terminal_if_supported_is_noop_for_non_interactive_tty():
+    cli = CLI.__new__(CLI)
+
+    class _Console:
+        def __init__(self) -> None:
+            self.clear_calls = 0
+
+        def clear(self) -> None:
+            self.clear_calls += 1
+
+    console = _Console()
+    cli.tui = type("TUIStub", (), {"_interactive_tty": False, "console": console})()
+
+    cli._clear_terminal_if_supported()
+
+    assert console.clear_calls == 0
+
+
+def test_clear_terminal_if_supported_is_noop_when_console_lacks_clear():
+    cli = CLI.__new__(CLI)
+    cli.tui = type("TUIStub", (), {"_interactive_tty": True, "console": object()})()
+
+    cli._clear_terminal_if_supported()

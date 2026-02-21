@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "pichu"
-version = "0.1.1"
+version = "0.1.2"
 description = "⚡ pichu — code, compile, conquer"
 readme = "README.md"
 license = "Apache-2.0"
@@ -24,6 +24,7 @@ dependencies = [
     "playwright>=1.50.0",
     "pydantic>=2.9.0",
     "pypdf>=5.3.0",
+    "prompt_toolkit>=3.0.50",
     "python-dotenv>=1.0.1",
     "pyyaml>=6.0.2",
     "rich>=13.9.0",
@@ -46,10 +47,10 @@ dev = [
 ]
 
 [project.scripts]
-pichu = "main:main"
+pichu = "pichu_main:main"
 
 [tool.setuptools]
-py-modules = ["main"]
+py-modules = ["pichu_main"]
 
 [tool.setuptools.packages.find]
 where = ["src"]

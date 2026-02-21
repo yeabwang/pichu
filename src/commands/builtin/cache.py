@@ -5,7 +5,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from commands.base import CommandResult, SlashCommand
+from commands.base import CommandDisplayPayload, CommandResult, SlashCommand
 from commands.builtin._scaffold import relative_to_project
 from utils.cache import WebCache
 
@@ -49,25 +49,30 @@ class CacheCommand(SlashCommand):
         if not db_existed:
             created.append(relative_to_project(db_path, config.cwd))
 
-        tui.console.print()
+        lines: list[str] = [""]
         if created:
             for item in created:
-                tui.console.print(f"  [success]✓[/success] Created {item}")
+                lines.append(f"  [success]✓[/success] Created {item}")
         else:
-            tui.console.print("  [dim]Cache scaffolding already initialized.[/dim]")
-        tui.console.print()
-        return CommandResult()
+            lines.append("  [dim]Cache scaffolding already initialized.[/dim]")
+        lines.append("")
+        return CommandResult(display=CommandDisplayPayload(renderables=lines))
 
     async def _status_cache(self, tui: "TUI", config: "Config") -> CommandResult:
         cache_dir, *_ = _cache_settings(config)
         db_path = cache_dir / "web_cache.db"
 
-        tui.console.print()
-        tui.console.print(f"  [dim]Cache directory:[/dim] {cache_dir}")
-        tui.console.print(f"  [dim]Database:[/dim] {'present' if db_path.exists() else 'not initialized'}")
-        tui.console.print("  [dim]Run /cache init to scaffold cache storage.[/dim]")
-        tui.console.print()
-        return CommandResult()
+        return CommandResult(
+            display=CommandDisplayPayload(
+                renderables=[
+                    "",
+                    f"  [dim]Cache directory:[/dim] {cache_dir}",
+                    f"  [dim]Database:[/dim] {'present' if db_path.exists() else 'not initialized'}",
+                    "  [dim]Run /cache init to scaffold cache storage.[/dim]",
+                    "",
+                ]
+            )
+        )
 
 
 def _cache_settings(config: "Config") -> tuple[Path, float, float, float]:

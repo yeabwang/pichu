@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from commands.base import CommandResult, SlashCommand
+from commands.base import CommandDisplayPayload, CommandResult, SlashCommand
 
 if TYPE_CHECKING:
     from agent.session import Session
@@ -28,9 +28,13 @@ class ForkCommand(SlashCommand):
         if not forked:
             return CommandResult(error="Failed to fork session.")
 
-        tui.console.print("[green]✓[/green] Session forked!")
-        tui.console.print(f"  [dim]New session ID:[/dim] [cyan]{forked.session_id[:8]}[/cyan]")
-        tui.console.print(f"  [dim]Title:[/dim] {forked.get_title()}")
-        tui.console.print(f"  [dim]Resume with:[/dim] [bold]--resume {forked.session_id[:8]}[/bold]")
-
-        return CommandResult()
+        return CommandResult(
+            display=CommandDisplayPayload(
+                renderables=[
+                    "[green]✓[/green] Session forked!",
+                    f"  [dim]New session ID:[/dim] [cyan]{forked.session_id[:8]}[/cyan]",
+                    f"  [dim]Title:[/dim] {forked.get_title()}",
+                    f"  [dim]Resume with:[/dim] [bold]--resume {forked.session_id[:8]}[/bold]",
+                ]
+            )
+        )

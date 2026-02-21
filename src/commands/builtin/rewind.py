@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from commands.base import CommandResult, SlashCommand
+from commands.base import CommandDisplayPayload, CommandResult, SlashCommand
 
 if TYPE_CHECKING:
     from agent.session import Session
@@ -22,14 +22,17 @@ class RewindCommand(SlashCommand):
         from rich.prompt import Prompt
         from rich.table import Table
 
+        renderer = getattr(tui, "render_command_payload", None)
+
         cp_mgr = session.checkpoint_manager
         if not cp_mgr:
             return CommandResult(error="Checkpoints are not enabled. Check your config.")
 
         checkpoints = cp_mgr.get_checkpoints()
         if not checkpoints:
-            tui.console.print("[dim]No checkpoints available yet.[/dim]")
-            return CommandResult()
+            return CommandResult(
+                display=CommandDisplayPayload(renderables=["[dim]No checkpoints available yet.[/dim]"])
+            )
 
         # If a turn number was specified, go directly to it
         target_turn: int | None = None
@@ -60,8 +63,8 @@ class RewindCommand(SlashCommand):
                     time_str,
                 )
 
-            tui.console.print(table)
-            tui.console.print()
+            if callable(renderer):
+                renderer([table, ""])
 
             try:
                 choice = Prompt.ask(
@@ -70,12 +73,10 @@ class RewindCommand(SlashCommand):
                     default=str(checkpoints[-1].turn_number),
                 )
                 if not choice.strip().isdigit():
-                    tui.console.print("[dim]Cancelled.[/dim]")
-                    return CommandResult()
+                    return CommandResult(display=CommandDisplayPayload(renderables=["[dim]Cancelled.[/dim]"]))
                 target_turn = int(choice.strip())
             except (KeyboardInterrupt, EOFError):
-                tui.console.print("[dim]Cancelled.[/dim]")
-                return CommandResult()
+                return CommandResult(display=CommandDisplayPayload(renderables=["[dim]Cancelled.[/dim]"]))
 
         # Validate turn number
         valid_turns = [cp.turn_number for cp in checkpoints]
@@ -83,13 +84,18 @@ class RewindCommand(SlashCommand):
             return CommandResult(error=f"Turn {target_turn} not found. Valid turns: {valid_turns}")
 
         # Ask what to restore
-        tui.console.print()
-        tui.console.print("[bold]Rewind options:[/bold]")
-        tui.console.print("  [cyan]1[/cyan] — Restore code only (revert file changes)")
-        tui.console.print("  [cyan]2[/cyan] — Restore conversation only (truncate context)")
-        tui.console.print("  [cyan]3[/cyan] — Restore both (code + conversation)")
-        tui.console.print("  [cyan]4[/cyan] — Summarize from here (compact history after this point)")
-        tui.console.print()
+        if callable(renderer):
+            renderer(
+                [
+                    "",
+                    "[bold]Rewind options:[/bold]",
+                    "  [cyan]1[/cyan] — Restore code only (revert file changes)",
+                    "  [cyan]2[/cyan] — Restore conversation only (truncate context)",
+                    "  [cyan]3[/cyan] — Restore both (code + conversation)",
+                    "  [cyan]4[/cyan] — Summarize from here (compact history after this point)",
+                    "",
+                ]
+            )
 
         try:
             mode = Prompt.ask(
@@ -99,10 +105,10 @@ class RewindCommand(SlashCommand):
                 console=tui.console,
             )
         except (KeyboardInterrupt, EOFError):
-            tui.console.print("[dim]Cancelled.[/dim]")
-            return CommandResult()
+            return CommandResult(display=CommandDisplayPayload(renderables=["[dim]Cancelled.[/dim]"]))
 
         results: list[str] = []
+        details: list[str] = []
 
         # Restore code
         if mode in ("1", "3"):
@@ -110,9 +116,9 @@ class RewindCommand(SlashCommand):
             if restored_files:
                 results.append(f"Restored {len(restored_files)} file(s)")
                 for f in restored_files[:5]:
-                    tui.console.print(f"  [green]↩[/green] {f}")
+                    details.append(f"  [green]↩[/green] {f}")
                 if len(restored_files) > 5:
-                    tui.console.print(f"  [dim]...and {len(restored_files) - 5} more[/dim]")
+                    details.append(f"  [dim]...and {len(restored_files) - 5} more[/dim]")
             else:
                 results.append("No files needed restoring")
 
@@ -135,7 +141,6 @@ class RewindCommand(SlashCommand):
 
         # Summarize from here
         if mode == "4":
-            results.append("Summarize-from-here: will compact context on next turn")
             # Force compression on next turn by setting a low token count
             if session.context_manager:
                 # Inject a system note that will trigger compaction
@@ -145,9 +150,10 @@ class RewindCommand(SlashCommand):
                     f"continuing from that point.]"
                 )
                 return CommandResult(inject_prompt=inject)
+            results.append("Could not prepare summarize-from-here request.")
 
-        tui.console.print()
-        for r in results:
-            tui.console.print(f"[green]✓[/green] {r}")
-
-        return CommandResult()
+        renderables: list[object] = [""]
+        renderables.extend(f"[green]✓[/green] {result}" for result in results)
+        renderables.extend(details)
+        renderables.append("")
+        return CommandResult(display=CommandDisplayPayload(renderables=renderables))

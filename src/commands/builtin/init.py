@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from commands.base import CommandResult, SlashCommand
+from commands.base import CommandDisplayPayload, CommandResult, SlashCommand
 from commands.builtin._scaffold import ensure_core_project_scaffold
 
 if TYPE_CHECKING:
@@ -23,15 +23,15 @@ class InitCommand(SlashCommand):
 
     async def execute(self, args: str, session: "Session", tui: "TUI", config: "Config") -> CommandResult:
         created = ensure_core_project_scaffold(config.cwd)
+        renderables: list[object] = [""]
 
-        tui.console.print()
         if created:
             for item in created:
-                tui.console.print(f"  [success]✓[/success] Created {item}")
+                renderables.append(f"  [success]✓[/success] Created {item}")
         else:
-            tui.console.print("  [dim]Core scaffold already initialized.[/dim]")
+            renderables.append("  [dim]Core scaffold already initialized.[/dim]")
 
-        tui.console.print("  [dim]Running modular subsystem initializers...[/dim]")
+        renderables.append("  [dim]Running modular subsystem initializers...[/dim]")
         for command_name in _MODULAR_INIT_COMMANDS:
             subcommand = self._resolve_subcommand(command_name)
             if subcommand is None:
@@ -40,11 +40,19 @@ class InitCommand(SlashCommand):
             result = await subcommand.execute("init", session, tui, config)
             if result.error:
                 return CommandResult(error=f"/{command_name} init failed: {result.error}")
+            if result.display:
+                renderables.extend(result.display.renderables)
+            if result.output:
+                renderables.append(result.output)
 
-        tui.console.print("  [success]✓[/success] Project scaffolding complete.")
-        tui.console.print("  [dim]Run /login to configure provider and model.[/dim]")
-        tui.console.print()
-        return CommandResult()
+        renderables.extend(
+            [
+                "  [success]✓[/success] Project scaffolding complete.",
+                "  [dim]Run /login to configure provider and model.[/dim]",
+                "",
+            ]
+        )
+        return CommandResult(display=CommandDisplayPayload(renderables=renderables))
 
     def _resolve_subcommand(self, name: str) -> SlashCommand | None:
         registry = getattr(self, "_registry", None)

@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="assets/logo.png" alt="pichu Logo" width="200"><br>
+  <img src="https://raw.githubusercontent.com/yeabwang/pichu/main/assets/logo.png" alt="pichu Logo" width="200">
 
   <h1 align="center">⚡ pichu</h1>
 
@@ -10,7 +10,7 @@
 
   <!-- Badges -->
   <p align="center">
-    <img src="https://static.pepy.tech/personalized-badge/pichu?period=total&units=INTERNATIONAL_SYSTEM&left_color=black&right_color=green&left_text=downloads">
+    <img src="https://assets.piptrends.com/get-last-week-downloads-badge/pichu.svg">
     <img src="https://img.shields.io/pypi/v/pichu">
     <img src="https://img.shields.io/github/license/yeabwang/pichu">
     <img src="https://img.shields.io/github/stars/yeabwang/pichu?style=social">
@@ -29,7 +29,7 @@
 ---
 
 <p align="center">
-  <img src="assets/demo.gif" alt="pichu Demo" />
+  <img src="https://raw.githubusercontent.com/yeabwang/pichu/main/assets/demo.gif" alt="pichu Demo" />
 </p>
 
 ## Features
@@ -46,16 +46,8 @@
 
 ## Quick Start
 
-1. Install pichu (recommended: one-line installer):
-   - See [docs/install.md](docs/install.md)
-2. Launch:
-   - `pichu`
-3. Configure model/provider:
-   - `/login`
-4. Initialize project:
-   - `/init`
-
-## Quick Demo
+Install pichu (recommended: one-line installer):
+  - See [docs/install.md](docs/install.md)
 
 ```bash
 # Start interactive mode
@@ -97,6 +89,7 @@ pichu "explain this repo"
 - [Sub-agents Module](docs/subagents-module.md) — sub-agent orchestration
 - [Task Management](docs/task-management.md) — task system architecture
 - [Tool Management](docs/tool-management.md) — tool registry and execution
+- [UI Module](docs/ui-module.md) — terminal UI architecture and rendering pipeline
 - [Utils Module](docs/utils-module.md) — shared runtime utilities
 
 ## Support the Project
