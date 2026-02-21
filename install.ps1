@@ -85,7 +85,7 @@ function Get-CommandPath([string]$Name) {
     if ($command.PSObject.Properties.Match("Path").Count -gt 0 -and $command.Path) {
         return $command.Path
     }
-    if ($command.PSObject.Properties.Match("Definition").Count -gt 0 -and (Test-Path -LiteralPath $command.Definition -PathType Leaf)) {
+    if ($command.PSObject.Properties.Match("Definition").Count -gt 0 -and -not [string]::IsNullOrWhiteSpace($command.Definition) -and (Test-Path -LiteralPath $command.Definition -PathType Leaf)) {
         return $command.Definition
     }
     return $null
@@ -125,7 +125,7 @@ function Select-Installer {
         return "pip"
     }
 
-    Fail "No package installer found. Install uv manually from https://docs.astral.sh/uv/getting-started/installation/."
+    Fail "No package installer found. Install uv (recommended), pipx, pip3, or pip and try again. See https://docs.astral.sh/uv/getting-started/installation/ for uv installation."
 }
 
 function Install-Pichu([string]$Installer) {
@@ -135,20 +135,20 @@ function Install-Pichu([string]$Installer) {
             & uv tool install --force "pichu @ git+https://github.com/$repo.git"
         }
         "pipx" {
-            & pipx install "git+https://github.com/$repo.git"
+            & pipx install --force "git+https://github.com/$repo.git"
         }
         "pip3" {
-            & pip3 install --user "git+https://github.com/$repo.git"
+            & pip3 install --upgrade --user "git+https://github.com/$repo.git"
         }
         "pip" {
-            & pip install --user "git+https://github.com/$repo.git"
+            & pip install --upgrade --user "git+https://github.com/$repo.git"
         }
         default {
             Fail "Unsupported installer '$Installer'."
         }
     }
 
-    if ($LASTEXITCODE -ne 0) {
+    if ($LASTEXITCODE -ne 0 -or -not $?) {
         Fail "Failed to install pichu with $Installer."
     }
 }
@@ -345,7 +345,7 @@ if ($major -lt 3 -or ($major -eq 3 -and $minor -lt 11)) {
 
 $installer = Select-Installer
 if ([string]::IsNullOrWhiteSpace($installer)) {
-    Fail "No package installer found. Install uv manually from https://docs.astral.sh/uv/getting-started/installation/."
+    Fail "No package installer found. Install uv (recommended), pipx, pip3, or pip and try again. See https://docs.astral.sh/uv/getting-started/installation/ for uv installation."
 }
 
 Install-Pichu $installer
