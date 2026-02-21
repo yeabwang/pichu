@@ -79,11 +79,14 @@ function Get-CommandPath([string]$Name) {
     if ($null -eq $command) {
         return $null
     }
-    if ($command.Source) {
+    if ($command.PSObject.Properties.Match("Source").Count -gt 0 -and $command.Source) {
         return $command.Source
     }
-    if ($command.Path) {
+    if ($command.PSObject.Properties.Match("Path").Count -gt 0 -and $command.Path) {
         return $command.Path
+    }
+    if ($command.PSObject.Properties.Match("Definition").Count -gt 0 -and (Test-Path -LiteralPath $command.Definition -PathType Leaf)) {
+        return $command.Definition
     }
     return $null
 }
@@ -108,71 +111,45 @@ function Refresh-ProcessPath {
     $env:Path = (@($userPath, $machinePath, $env:Path) | Where-Object { -not [string]::IsNullOrWhiteSpace($_) }) -join ";"
 }
 
-function Install-UvFromPackageManager {
-    if (Get-Command winget -ErrorAction SilentlyContinue) {
-        Write-Info "Installing uv with winget..."
-        & winget install --id astral-sh.uv --exact --silent --accept-package-agreements --accept-source-agreements
-        if ($LASTEXITCODE -eq 0 -and $?) {
-            Refresh-ProcessPath
-            if (Get-Command uv -ErrorAction SilentlyContinue) {
-                return $true
-            }
-        }
-        Write-Warn "winget install for uv did not succeed."
-    }
-
-    if (Get-Command scoop -ErrorAction SilentlyContinue) {
-        Write-Info "Installing uv with scoop..."
-        & scoop install uv
-        if ($LASTEXITCODE -eq 0 -and $?) {
-            Refresh-ProcessPath
-            if (Get-Command uv -ErrorAction SilentlyContinue) {
-                return $true
-            }
-        }
-        Write-Warn "scoop install for uv did not succeed."
-    }
-
-    if (Get-Command choco -ErrorAction SilentlyContinue) {
-        Write-Info "Installing uv with chocolatey..."
-        & choco install uv -y
-        if ($LASTEXITCODE -eq 0 -and $?) {
-            Refresh-ProcessPath
-            if (Get-Command uv -ErrorAction SilentlyContinue) {
-                return $true
-            }
-        }
-        Write-Warn "chocolatey install for uv did not succeed."
-    }
-
-    return $false
-}
-
 function Select-Installer {
-    if (-not (Get-Command uv -ErrorAction SilentlyContinue)) {
-        Write-Info "uv not found. Attempting package-manager install (winget, scoop, chocolatey)..."
-        if (-not (Install-UvFromPackageManager)) {
-            Fail "Failed to install uv automatically. Install uv manually from https://docs.astral.sh/uv/getting-started/installation/ and rerun."
-        }
+    if (Get-Command uv -ErrorAction SilentlyContinue) {
+        return "uv"
+    }
+    if (Get-Command pipx -ErrorAction SilentlyContinue) {
+        return "pipx"
+    }
+    if (Get-Command pip3 -ErrorAction SilentlyContinue) {
+        return "pip3"
+    }
+    if (Get-Command pip -ErrorAction SilentlyContinue) {
+        return "pip"
     }
 
-    if (-not (Get-Command uv -ErrorAction SilentlyContinue)) {
-        Fail "uv installation completed but uv is not available in PATH. Restart PowerShell and try again."
-    }
-
-    return "uv"
+    Fail "No package installer found. Install uv manually from https://docs.astral.sh/uv/getting-started/installation/."
 }
 
 function Install-Pichu([string]$Installer) {
     Write-Info "Installing pichu with $Installer..."
     switch ($Installer) {
         "uv" {
-            & uv tool install --reinstall "pichu @ git+https://github.com/$repo.git"
-            return
+            & uv tool install "pichu @ git+https://github.com/$repo.git"
+        }
+        "pipx" {
+            & pipx install "git+https://github.com/$repo.git"
+        }
+        "pip3" {
+            & pip3 install --user "git+https://github.com/$repo.git"
+        }
+        "pip" {
+            & pip install --user "git+https://github.com/$repo.git"
         }
         default {
             Fail "Unsupported installer '$Installer'."
         }
+    }
+
+    if ($LASTEXITCODE -ne 0) {
+        Fail "Failed to install pichu with $Installer."
     }
 }
 
