@@ -27,4 +27,3 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed installed CLI entrypoint behavior.
 - Improved project initialization and modular scaffolding command behavior.
 - Fixed alias validation by updating the regex checks.
-
