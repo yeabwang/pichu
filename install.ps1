@@ -92,7 +92,7 @@ function Get-CommandPath([string]$Name) {
     if ($null -eq $cmd) { return $null }
 
     foreach ($prop in @('Source','Path','Definition')) {
-        $val = $cmd.PSObject.Properties[$prop]?.Value
+        $val = ($cmd.PSObject.Properties[$prop] | Select-Object -ExpandProperty Value -ErrorAction SilentlyContinue)
         if ($val -and (Test-Path -LiteralPath $val -PathType Leaf)) {
             return $val
         }
