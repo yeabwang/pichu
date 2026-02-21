@@ -132,7 +132,7 @@ function Install-Pichu([string]$Installer) {
     Write-Info "Installing pichu with $Installer..."
     switch ($Installer) {
         "uv" {
-            & uv tool install "pichu @ git+https://github.com/$repo.git"
+            & uv tool install --force "pichu @ git+https://github.com/$repo.git"
         }
         "pipx" {
             & pipx install "git+https://github.com/$repo.git"
