@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from commands.base import CommandResult, SlashCommand
+from commands.base import CommandDisplayPayload, CommandResult, SlashCommand
 
 if TYPE_CHECKING:
     from agent.session import Session
@@ -63,10 +63,14 @@ class HelpCommand(SlashCommand):
         else:
             table.add_row("/help", "", "Display this help information")
 
-        tui.console.print()
-        tui.console.print(table)
-        tui.console.print()
-        tui.console.print("  [dim]Type /command to execute. Arguments shown in [brackets] are optional.[/dim]")
-        tui.console.print()
-
-        return CommandResult()
+        return CommandResult(
+            display=CommandDisplayPayload(
+                renderables=[
+                    "",
+                    table,
+                    "",
+                    "  [dim]Type /command to execute. Arguments shown in [brackets] are optional.[/dim]",
+                    "",
+                ]
+            )
+        )

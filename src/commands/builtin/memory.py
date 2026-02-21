@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from commands.base import CommandResult, SlashCommand
+from commands.base import CommandDisplayPayload, CommandResult, SlashCommand
 
 if TYPE_CHECKING:
     from agent.session import Session
@@ -79,14 +79,11 @@ class MemoryCommand(SlashCommand):
             storage.set_cursor({"last_processed": None, "position": 0})
             created.append(relative_to_project(cursor_path, project_root))
 
-        tui.console.print()
         if created:
-            for item in created:
-                tui.console.print(f"  [success]✓[/success] Created {item}")
+            lines = [f"  [success]✓[/success] Created {item}" for item in created]
         else:
-            tui.console.print("  [dim]Memory scaffolding already initialized.[/dim]")
-        tui.console.print()
-        return CommandResult()
+            lines = ["  [dim]Memory scaffolding already initialized.[/dim]"]
+        return CommandResult(display=CommandDisplayPayload(renderables=["", *lines, ""]))
 
     async def _list_memory(self, agents_loader, memory_manager, tui: "TUI", config: "Config") -> CommandResult:
         from pathlib import Path
@@ -158,14 +155,18 @@ class MemoryCommand(SlashCommand):
             padding=(1, 1),
         )
 
-        tui.console.print()
-        tui.console.print(panel)
-        tui.console.print()
-        tui.console.print("  [dim]/memory edit — open AGENTS.md in editor[/dim]")
-        tui.console.print("  [dim]/memory search <query> — search memories[/dim]")
-        tui.console.print()
-
-        return CommandResult()
+        return CommandResult(
+            display=CommandDisplayPayload(
+                renderables=[
+                    "",
+                    panel,
+                    "",
+                    "  [dim]/memory edit — open AGENTS.md in editor[/dim]",
+                    "  [dim]/memory search <query> — search memories[/dim]",
+                    "",
+                ]
+            )
+        )
 
     async def _edit_memory(self, tui: "TUI", config: "Config") -> CommandResult:
         import os
@@ -179,20 +180,28 @@ class MemoryCommand(SlashCommand):
                 "# Project Instructions\n\n## Architecture\n\n## Patterns\n\n## Conventions\n\n## Gotchas\n\n",
                 encoding="utf-8",
             )
-            tui.console.print(f"  [success]✓[/success] Created {project_agents}")
+            created_line = f"  [success]✓[/success] Created {project_agents}"
+        else:
+            created_line = None
 
         editor = os.environ.get("EDITOR", os.environ.get("VISUAL", ""))
         if editor:
             try:
                 subprocess.Popen([editor, str(project_agents)])  # noqa: S603
-                tui.console.print(f"  [dim]Opening {project_agents} in {editor}...[/dim]")
+                lines = []
+                if created_line:
+                    lines.append(created_line)
+                lines.append(f"  [dim]Opening {project_agents} in {editor}...[/dim]")
+                return CommandResult(display=CommandDisplayPayload(renderables=lines))
             except Exception as e:
                 return CommandResult(error=f"Failed to open editor: {e}")
         else:
-            tui.console.print(f"  [dim]AGENTS.md path: {project_agents}[/dim]")
-            tui.console.print("  [dim]Set $EDITOR to open in your editor, or edit manually.[/dim]")
-
-        return CommandResult()
+            lines = []
+            if created_line:
+                lines.append(created_line)
+            lines.append(f"  [dim]AGENTS.md path: {project_agents}[/dim]")
+            lines.append("  [dim]Set $EDITOR to open in your editor, or edit manually.[/dim]")
+            return CommandResult(display=CommandDisplayPayload(renderables=lines))
 
     async def _search_memory(self, query: str, memory_manager, tui: "TUI") -> CommandResult:
         if not memory_manager:
@@ -201,17 +210,16 @@ class MemoryCommand(SlashCommand):
         try:
             results = memory_manager.search(query)
             if not results:
-                tui.console.print(f"  [dim]No memories matching '{query}'[/dim]")
-                return CommandResult()
+                return CommandResult(
+                    display=CommandDisplayPayload(renderables=[f"  [dim]No memories matching '{query}'[/dim]"])
+                )
 
-            tui.console.print()
-            tui.console.print(f"  [info]Found {len(results)} memories matching '{query}':[/info]")
+            lines: list[str] = ["", f"  [info]Found {len(results)} memories matching '{query}':[/info]"]
             for mem in results[:10]:
                 cat = getattr(mem.category, "value", str(mem.category))
                 content = str(mem.content)[:100]
-                tui.console.print(f"  [dim]•[/dim] [{cat}] {content}")
-            tui.console.print()
+                lines.append(f"  [dim]•[/dim] [{cat}] {content}")
+            lines.append("")
+            return CommandResult(display=CommandDisplayPayload(renderables=lines))
         except Exception as e:
             return CommandResult(error=f"Memory search failed: {e}")
-
-        return CommandResult()

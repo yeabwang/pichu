@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from commands.base import CommandResult, SlashCommand
+from commands.base import CommandDisplayPayload, CommandResult, SlashCommand
 from commands.builtin._scaffold import ensure_gitignore_entry
 
 if TYPE_CHECKING:
@@ -37,11 +37,16 @@ class AgentsCommand(SlashCommand):
 
         agents = loader.get_all()
         if not agents:
-            tui.console.print()
-            tui.console.print("[dim]No sub-agents loaded.[/dim]")
-            tui.console.print("[dim]Add .md files to sub_agents/ or ~/.pichu/sub_agents/[/dim]")
-            tui.console.print()
-            return CommandResult()
+            return CommandResult(
+                display=CommandDisplayPayload(
+                    renderables=[
+                        "",
+                        "[dim]No sub-agents loaded.[/dim]",
+                        "[dim]Add .md files to sub_agents/ or ~/.pichu/sub_agents/[/dim]",
+                        "",
+                    ]
+                )
+            )
 
         # If a name is given, show detail for that agent
         target = normalized_args.lower() if normalized_args and normalized_args.lower() != "list" else None
@@ -90,10 +95,7 @@ class AgentsCommand(SlashCommand):
                 border_style="border",
                 padding=(1, 1),
             )
-            tui.console.print()
-            tui.console.print(panel)
-            tui.console.print()
-            return CommandResult()
+            return CommandResult(display=CommandDisplayPayload(renderables=["", panel, ""]))
 
         # List all agents in a table
         table = Table(
@@ -134,14 +136,18 @@ class AgentsCommand(SlashCommand):
                 source,
             )
 
-        tui.console.print()
-        tui.console.print(f"[bold]Sub-Agents ({len(agents)})[/bold]")
-        tui.console.print(table)
-        tui.console.print()
-        tui.console.print("[dim]Use /agent <name> for details[/dim]")
-        tui.console.print()
-
-        return CommandResult()
+        return CommandResult(
+            display=CommandDisplayPayload(
+                renderables=[
+                    "",
+                    f"[bold]Sub-Agents ({len(agents)})[/bold]",
+                    table,
+                    "",
+                    "[dim]Use /agent <name> for details[/dim]",
+                    "",
+                ]
+            )
+        )
 
     async def _init_agent_files(self, tui: "TUI", config: "Config") -> CommandResult:
         project_root = config.cwd
@@ -166,18 +172,18 @@ class AgentsCommand(SlashCommand):
 
         gitignore_updated = ensure_gitignore_entry(project_root, local_agents_file_name, "pichu local config")
 
-        tui.console.print()
+        lines: list[str] = [""]
         if created:
             for item in created:
-                tui.console.print(f"  [success]✓[/success] Created {item}")
+                lines.append(f"  [success]✓[/success] Created {item}")
         else:
-            tui.console.print("  [dim]Agent scaffolding already initialized.[/dim]")
+            lines.append("  [dim]Agent scaffolding already initialized.[/dim]")
 
         if gitignore_updated:
-            tui.console.print(f"  [success]✓[/success] Added {local_agents_file_name} to .gitignore")
+            lines.append(f"  [success]✓[/success] Added {local_agents_file_name} to .gitignore")
 
-        tui.console.print()
-        return CommandResult()
+        lines.append("")
+        return CommandResult(display=CommandDisplayPayload(renderables=lines))
 
 
 def _agents_template(project_name: str) -> str:

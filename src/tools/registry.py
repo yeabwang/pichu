@@ -13,6 +13,13 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 
+_APPROVAL_EXEMPT_TOOLS = {
+    "task_create",
+    "task_get",
+    "task_list",
+    "task_update",
+}
+
 
 class ToolRegistry:
     def __init__(self):
@@ -205,7 +212,12 @@ class ToolRegistry:
             hook_bypasses_approval = False
 
         # --- Approval check (skipped if hook already allowed) ---
-        if not hook_bypasses_approval and approval_manager and tool.is_mutating(params):
+        if (
+            not hook_bypasses_approval
+            and approval_manager
+            and tool.name not in _APPROVAL_EXEMPT_TOOLS
+            and tool.is_mutating(params)
+        ):
             confirmation = await tool.get_confirmation(invocation)
             if confirmation:
                 decision = await approval_manager.check_and_approve(confirmation)

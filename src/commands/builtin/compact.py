@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from commands.base import CommandResult, SlashCommand
+from commands.base import CommandDisplayPayload, CommandResult, SlashCommand
 
 if TYPE_CHECKING:
     from agent.session import Session
@@ -25,9 +25,6 @@ class CompactCommand(SlashCommand):
         compactor = session.chat_compactor
         context_manager = session.context_manager
 
-        tui.console.print()
-        tui.console.print("  [info]⚡ Compacting context...[/info]")
-
         # Get current token count
         max_tokens = int(config.limits.context_window * config.limits.compression_threshold * 0.5)
 
@@ -39,30 +36,32 @@ class CompactCommand(SlashCommand):
             )
 
             if summary is None:
-                tui.console.print("  [dim]Context is already compact — no action needed.[/dim]")
-                tui.console.print()
-                return CommandResult()
+                return CommandResult(
+                    display=CommandDisplayPayload(
+                        renderables=[
+                            "",
+                            "  [info]⚡ Compacting context...[/info]",
+                            "  [dim]Context is already compact — no action needed.[/dim]",
+                            "",
+                        ]
+                    )
+                )
 
             # Apply the compacted summary
             context_manager.replace_with_summary(summary)
 
             new_tokens = context_manager.get_message_token_total()
 
-            tui.print_context_event(
-                "compacted",
-                {
-                    "original_tokens": original_tokens,
-                    "new_tokens": new_tokens,
-                    "tokens_saved": original_tokens - new_tokens,
-                },
-            )
-
+            lines: list[str] = [
+                "",
+                "  [info]⚡ Compacting context...[/info]",
+                f"  [warning]⚡ Context compacted:[/warning] [dim]{original_tokens:,} → {new_tokens:,} tokens[/dim] "
+                f"[success](saved {original_tokens - new_tokens:,})[/success]",
+            ]
             if args.strip():
-                tui.console.print(f"  [dim]Focus: {args.strip()}[/dim]")
-
-            tui.console.print()
+                lines.append(f"  [dim]Focus: {args.strip()}[/dim]")
+            lines.append("")
+            return CommandResult(display=CommandDisplayPayload(renderables=lines))
 
         except Exception as e:
             return CommandResult(error=f"Compaction failed: {e}")
-
-        return CommandResult()

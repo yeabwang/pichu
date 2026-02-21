@@ -8,7 +8,7 @@ from collections.abc import MutableMapping
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from commands.base import CommandResult, SlashCommand
+from commands.base import CommandDisplayPayload, CommandResult, SlashCommand
 from config.config import MCPServerConfig
 
 if TYPE_CHECKING:
@@ -170,20 +170,22 @@ class GithubCommand(SlashCommand):
             "GITHUB_PERSONAL_ACCESS_TOKEN",
         )
 
-        tui.console.print()
-        tui.console.print(
-            Panel(
-                table,
-                title="[info]🐙 GitHub Integration[/info]",
-                border_style="border",
-                padding=(1, 1),
+        return CommandResult(
+            display=CommandDisplayPayload(
+                renderables=[
+                    "",
+                    Panel(
+                        table,
+                        title="[info]🐙 GitHub Integration[/info]",
+                        border_style="border",
+                        padding=(1, 1),
+                    ),
+                    "  [dim]Use /github setup to scaffold configuration.[/dim]",
+                    "  [dim]Use /github examples to see task prompts.[/dim]",
+                    "",
+                ]
             )
         )
-        tui.console.print("  [dim]Use /github setup to scaffold configuration.[/dim]")
-        tui.console.print("  [dim]Use /github examples to see task prompts.[/dim]")
-        tui.console.print()
-
-        return CommandResult()
 
     @staticmethod
     def _normalize_mode(raw_mode: str) -> str | None:
@@ -239,33 +241,31 @@ class GithubCommand(SlashCommand):
     def _check_token_on_status(self, tui: "TUI", config: "Config") -> None:
         return
 
-    def _prompt_and_store_token(self, tui: "TUI") -> bool:
+    def _prompt_and_store_token(self, tui: "TUI") -> tuple[bool, list[str]]:
+        messages: list[str] = []
         token = os.environ.get(_GITHUB_PAT_ENV, "").strip()
         if token:
-            return True
+            return True, messages
 
-        tui.console.print()
         token = tui.console.input("  [bold]GitHub personal access token: [/bold]").strip()
         if not token:
-            tui.console.print(f"  [warning]⚠[/warning] {_GITHUB_PAT_ENV} is required.")
-            return False
+            messages.append(f"  [warning]⚠[/warning] {_GITHUB_PAT_ENV} is required.")
+            return False, messages
 
         env_path = _find_env_file()
         _write_env_keys(env_path, {_GITHUB_PAT_ENV: token})
         os.environ[_GITHUB_PAT_ENV] = token
 
-        tui.console.print(f"  [success]✓[/success] {_GITHUB_PAT_ENV} saved to {env_path}")
-        tui.console.print(f"  [dim]Token:[/dim] {_mask_secret(token)}")
-        return True
+        messages.append(f"  [success]✓[/success] {_GITHUB_PAT_ENV} saved to {env_path}")
+        messages.append(f"  [dim]Token:[/dim] {_mask_secret(token)}")
+        return True, messages
 
     async def _interactive_setup(
         self, session: "Session", tui: "TUI", config: "Config", *, title: str
     ) -> CommandResult:
-        console = tui.console
-        console.print()
-        console.print(f"  [bold]{title}[/bold]")
-        console.print("  [bold]Select a GitHub MCP profile:[/bold]")
-        console.print()
+        renderer = getattr(tui, "render_command_payload", None)
+        if callable(renderer):
+            renderer(["", f"  [bold]{title}[/bold]", "  [bold]Select a GitHub MCP profile:[/bold]", ""])
 
         options: list[tuple[int, str]] = [
             (0, "Local (Docker)  [dim](requires docker + GITHUB_PERSONAL_ACCESS_TOKEN)[/dim]"),
@@ -296,13 +296,15 @@ class GithubCommand(SlashCommand):
 
         return await self._setup(session, tui, config, mode=selected_mode)
 
-    def _print_mode_prereq(self, tui: "TUI", mode: str) -> None:
+    def _print_mode_prereq(self, mode: str) -> list[str]:
+        messages: list[str] = []
         if mode == "local" and shutil.which("docker") is None:
-            tui.console.print("  [warning]⚠[/warning] Docker is not on PATH. Local GitHub MCP may fail to start.")
+            messages.append("  [warning]⚠[/warning] Docker is not on PATH. Local GitHub MCP may fail to start.")
         if mode in {"remote", "readonly"}:
-            tui.console.print(
+            messages.append(
                 "  [dim]Remote profile uses api.githubcopilot.com and requires a valid GitHub personal access token.[/dim]"
             )
+        return messages
 
     async def _setup(self, session: "Session", tui: "TUI", config: "Config", *, mode: str) -> CommandResult:
         from tomlkit import document, dumps, item, parse, table
@@ -311,8 +313,10 @@ class GithubCommand(SlashCommand):
         if normalized_mode is None:
             return CommandResult(error="Unknown setup mode. Use /github setup [remote|readonly|local].")
 
-        self._print_mode_prereq(tui, normalized_mode)
-        has_token = self._prompt_and_store_token(tui)
+        renderables: list[object] = [""]
+        renderables.extend(self._print_mode_prereq(normalized_mode))
+        has_token, token_messages = self._prompt_and_store_token(tui)
+        renderables.extend(token_messages)
         if not has_token:
             return CommandResult(error=f"{_GITHUB_PAT_ENV} is required to configure GitHub MCP.")
 
@@ -345,14 +349,13 @@ class GithubCommand(SlashCommand):
         config_path.write_text(dumps(doc), encoding="utf-8")
         config.mcp_servers[github_name] = MCPServerConfig(**payload)  # type: ignore[arg-type]
 
-        tui.console.print()
-        tui.console.print(
+        renderables.append(
             f"  [success]✓[/success] Configured [accent][mcp_servers.{github_name}][/accent] ({label}) in {config_path}"
         )
         if normalized_mode == "local":
-            tui.console.print("  [dim]Set GITHUB_PERSONAL_ACCESS_TOKEN in your shell before reconnecting.[/dim]")
+            renderables.append("  [dim]Set GITHUB_PERSONAL_ACCESS_TOKEN in your shell before reconnecting.[/dim]")
         else:
-            tui.console.print("  [dim]Remote mode may require host OAuth or Authorization header configuration.[/dim]")
+            renderables.append("  [dim]Remote mode may require host OAuth or Authorization header configuration.[/dim]")
 
         if session and session._mcp_manager:
             try:
@@ -363,26 +366,26 @@ class GithubCommand(SlashCommand):
                     None,
                 )
                 if github_snapshot and github_snapshot.status == "connected":
-                    tui.console.print(
+                    renderables.append(
                         f"  [success]✓[/success] Reconnected MCP servers ({tool_count} tool(s) registered)."
                     )
                 elif github_snapshot and github_snapshot.status == "error":
-                    tui.console.print(
+                    renderables.append(
                         f"  [warning]⚠[/warning] Reconnected MCP servers ({tool_count} tool(s) registered), "
                         f"but GitHub server is in error: {github_snapshot.error or 'unknown error'}."
                     )
                 else:
                     state = github_snapshot.status if github_snapshot else "unknown"
-                    tui.console.print(
+                    renderables.append(
                         f"  [warning]⚠[/warning] Reconnected MCP servers ({tool_count} tool(s) registered), "
                         f"but GitHub server status is {state}."
                     )
             except Exception as exc:
-                tui.console.print(f"  [warning]⚠[/warning] Config saved, but reconnect failed: {exc}")
-                tui.console.print("  [dim]After setting token, run /mcp reconnect.[/dim]")
+                renderables.append(f"  [warning]⚠[/warning] Config saved, but reconnect failed: {exc}")
+                renderables.append("  [dim]After setting token, run /mcp reconnect.[/dim]")
 
-        tui.console.print()
-        return CommandResult()
+        renderables.append("")
+        return CommandResult(display=CommandDisplayPayload(renderables=renderables))
 
     def _render_examples(self, tui: "TUI") -> CommandResult:
         from rich.panel import Panel
@@ -396,14 +399,17 @@ class GithubCommand(SlashCommand):
         text.append("• Search code for auth middleware in owner/repo.\n")
         text.append("• Compare latest commits on main and release branches.\n")
 
-        tui.console.print()
-        tui.console.print(
-            Panel(
-                text,
-                title="[info]GitHub task examples[/info]",
-                border_style="border",
-                padding=(1, 1),
+        return CommandResult(
+            display=CommandDisplayPayload(
+                renderables=[
+                    "",
+                    Panel(
+                        text,
+                        title="[info]GitHub task examples[/info]",
+                        border_style="border",
+                        padding=(1, 1),
+                    ),
+                    "",
+                ]
             )
         )
-        tui.console.print()
-        return CommandResult()

@@ -5,7 +5,7 @@ from __future__ import annotations
 from importlib.metadata import PackageNotFoundError, version
 from typing import TYPE_CHECKING
 
-from commands.base import CommandResult, SlashCommand
+from commands.base import CommandDisplayPayload, CommandResult, SlashCommand
 
 if TYPE_CHECKING:
     from agent.session import Session
@@ -111,8 +111,4 @@ class StatusCommand(SlashCommand):
             padding=(1, 1),
         )
 
-        tui.console.print()
-        tui.console.print(panel)
-        tui.console.print()
-
-        return CommandResult()
+        return CommandResult(display=CommandDisplayPayload(renderables=["", panel, ""]))

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from commands.base import CommandResult, SlashCommand
+from commands.base import CommandDisplayPayload, CommandResult, SlashCommand
 
 if TYPE_CHECKING:
     from agent.session import Session
@@ -36,11 +36,16 @@ class McpCommand(SlashCommand):
         snapshots = mcp_manager.get_status_snapshot()
 
         if not snapshots and not config.mcp_servers:
-            tui.console.print()
-            tui.console.print("  [dim]No MCP servers configured.[/dim]")
-            tui.console.print("  [dim]Add servers to .pichu/config.toml under [mcp_servers][/dim]")
-            tui.console.print()
-            return CommandResult()
+            return CommandResult(
+                display=CommandDisplayPayload(
+                    renderables=[
+                        "",
+                        "  [dim]No MCP servers configured.[/dim]",
+                        "  [dim]Add servers to .pichu/config.toml under [mcp_servers][/dim]",
+                        "",
+                    ]
+                )
+            )
 
         table = Table(
             box=box.ROUNDED,
@@ -82,32 +87,24 @@ class McpCommand(SlashCommand):
             padding=(1, 1),
         )
 
-        tui.console.print()
-        tui.console.print(panel)
-
+        renderables: list[object] = ["", panel]
         if tool_names:
-            tui.console.print(f"  [dim]Registered MCP tools ({len(tool_names)}):[/dim]")
+            renderables.append(f"  [dim]Registered MCP tools ({len(tool_names)}):[/dim]")
             for tn in tool_names[:15]:
-                tui.console.print(f"    [dim]• {tn}[/dim]")
+                renderables.append(f"    [dim]• {tn}[/dim]")
             if len(tool_names) > 15:
-                tui.console.print(f"    [dim]... and {len(tool_names) - 15} more[/dim]")
+                renderables.append(f"    [dim]... and {len(tool_names) - 15} more[/dim]")
 
-        tui.console.print()
-        tui.console.print("  [dim]/mcp reconnect — reconnect all servers[/dim]")
-        tui.console.print()
-
-        return CommandResult()
+        renderables.extend(["", "  [dim]/mcp reconnect — reconnect all servers[/dim]", ""])
+        return CommandResult(display=CommandDisplayPayload(renderables=renderables))
 
     async def _reconnect(self, mcp_manager, session: "Session", tui: "TUI") -> CommandResult:
-        tui.console.print()
-        tui.console.print("  [info]Reconnecting MCP servers...[/info]")
-
         try:
             count = await mcp_manager.reconnect(session.tool_registry)
-
-            tui.console.print(f"  [success]✓[/success] Reconnected. {count} MCP tools registered.")
+            message = f"  [success]✓[/success] Reconnected. {count} MCP tools registered."
         except Exception as e:
-            tui.console.print(f"  [error]✗ Reconnection failed: {e}[/error]")
+            message = f"  [error]✗ Reconnection failed: {e}[/error]"
 
-        tui.console.print()
-        return CommandResult()
+        return CommandResult(
+            display=CommandDisplayPayload(renderables=["", "  [info]Reconnecting MCP servers...[/info]", message, ""])
+        )

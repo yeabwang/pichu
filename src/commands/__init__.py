@@ -2,7 +2,7 @@
 
 from pathlib import Path
 
-from commands.base import CommandRegistry, CommandResult, SlashCommand
+from commands.base import CommandDisplayPayload, CommandRegistry, CommandResult, SlashCommand
 from commands.builtin import register_all_commands
 from commands.custom_loader import CustomSlashCommand, load_custom_commands
 from commands.router import CommandRouter
@@ -21,6 +21,7 @@ def create_command_router(
 __all__ = [
     "SlashCommand",
     "CommandResult",
+    "CommandDisplayPayload",
     "CommandRegistry",
     "CommandRouter",
     "CustomSlashCommand",

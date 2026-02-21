@@ -6,7 +6,7 @@ from collections.abc import MutableMapping, MutableSequence
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from commands.base import CommandResult, SlashCommand
+from commands.base import CommandDisplayPayload, CommandResult, SlashCommand
 from commands.builtin._scaffold import ensure_core_project_scaffold, project_config_path, relative_to_project
 
 if TYPE_CHECKING:
@@ -190,9 +190,9 @@ class HooksCommand(SlashCommand):
         if not session:
             return CommandResult(error="No active session.")
 
-        # Delegate to the existing TUI display_hooks method
-        tui.display_hooks(session.hook_engine)
-        return CommandResult()
+        return CommandResult(
+            display=CommandDisplayPayload(renderables=self._build_hook_renderables(session.hook_engine))
+        )
 
     async def _init_hooks(self, tui: "TUI", config: "Config") -> CommandResult:
         created_core = ensure_core_project_scaffold(config.cwd)
@@ -218,21 +218,84 @@ class HooksCommand(SlashCommand):
         except ValueError as exc:
             return CommandResult(error=str(exc))
 
-        tui.console.print()
+        lines: list[str] = [""]
         if created:
             for item in created:
-                tui.console.print(f"  [success]✓[/success] Created {item}")
+                lines.append(f"  [success]✓[/success] Created {item}")
         else:
-            tui.console.print("  [dim]Hook files already initialized.[/dim]")
+            lines.append("  [dim]Hook files already initialized.[/dim]")
 
         if added_handlers:
-            tui.console.print(f"  [success]✓[/success] Added {added_handlers} hook handler(s) to config")
+            lines.append(f"  [success]✓[/success] Added {added_handlers} hook handler(s) to config")
         else:
-            tui.console.print("  [dim]Hook config already contains default handlers.[/dim]")
+            lines.append("  [dim]Hook config already contains default handlers.[/dim]")
 
-        tui.console.print("  [dim]Hook config changes apply on the next session start.[/dim]")
-        tui.console.print()
-        return CommandResult()
+        lines.append("  [dim]Hook config changes apply on the next session start.[/dim]")
+        lines.append("")
+        return CommandResult(display=CommandDisplayPayload(renderables=lines))
+
+    @staticmethod
+    def _build_hook_renderables(hook_engine) -> list[object]:
+        from rich import box
+        from rich.panel import Panel
+        from rich.table import Table
+
+        if hook_engine is None or not hook_engine.has_hooks:
+            return [
+                "",
+                Panel(
+                    "[dim]No hooks registered. Add hooks to "
+                    "[path].pichu/config.toml[/path] under [code.inline]\\[hooks][/code.inline].[/dim]",
+                    title="[info] Hooks[/info]",
+                    border_style="border",
+                    padding=(1, 2),
+                ),
+            ]
+
+        events = hook_engine.get_registered_events()
+        total = hook_engine.get_hook_count()
+
+        table = Table(
+            title=f"Registered Hooks ({total} handler{'s' if total != 1 else ''})",
+            title_style="info",
+            box=box.ROUNDED,
+            border_style="border",
+            show_lines=True,
+            padding=(0, 1),
+        )
+        table.add_column("Event", style="accent", min_width=18)
+        table.add_column("Matcher", style="secondary", min_width=12)
+        table.add_column("Type", style="dim", min_width=8)
+        table.add_column("Command", style="code.inline", max_width=60, overflow="fold")
+        table.add_column("Timeout", style="dim", justify="right", min_width=7)
+        table.add_column("Async", style="dim", justify="center", min_width=5)
+
+        for event in events:
+            for registration in hook_engine.get_registrations(event):
+                handler = registration.handler
+                pattern = registration.matcher or "*"
+                table.add_row(
+                    event.value,
+                    pattern,
+                    handler.type,
+                    handler.command[:80] + ("..." if len(handler.command) > 80 else ""),
+                    f"{handler.timeout}s",
+                    "✓" if handler.async_ else "",
+                )
+
+        status_parts = [
+            f"[accent]{len(events)}[/accent] event{'s' if len(events) != 1 else ''}",
+            f"[accent]{total}[/accent] handler{'s' if total != 1 else ''}",
+        ]
+        if hook_engine.stop_hook_active:
+            status_parts.append("[warning]stop_hook_active[/warning]")
+
+        return [
+            "",
+            table,
+            f"  {' · '.join(status_parts)}",
+            "",
+        ]
 
     def _ensure_default_hook_config(self, config_path: Path) -> int:
         from tomlkit import aot, document, dumps, parse, table

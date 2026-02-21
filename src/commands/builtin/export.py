@@ -5,7 +5,7 @@ from __future__ import annotations
 from datetime import datetime
 from typing import TYPE_CHECKING
 
-from commands.base import CommandResult, SlashCommand
+from commands.base import CommandDisplayPayload, CommandResult, SlashCommand
 
 if TYPE_CHECKING:
     from agent.session import Session
@@ -50,14 +50,18 @@ class ExportCommand(SlashCommand):
 
         try:
             filepath.write_text(content, encoding="utf-8")
-            tui.console.print()
-            tui.console.print(f"  [success]✓[/success] Conversation exported to [path]{filepath}[/path]")
-            tui.console.print(f"  [dim]{len(messages)} messages · {len(content):,} bytes[/dim]")
-            tui.console.print()
+            return CommandResult(
+                display=CommandDisplayPayload(
+                    renderables=[
+                        "",
+                        f"  [success]✓[/success] Conversation exported to [path]{filepath}[/path]",
+                        f"  [dim]{len(messages)} messages · {len(content):,} bytes[/dim]",
+                        "",
+                    ]
+                )
+            )
         except Exception as e:
             return CommandResult(error=f"Failed to write export: {e}")
-
-        return CommandResult()
 
     def _export_json(self, messages: list, session: "Session", config: "Config") -> str:
         import json

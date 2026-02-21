@@ -5,12 +5,19 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from difflib import get_close_matches
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from agent.session import Session
     from config import Config
     from ui.tui import TUI
+
+
+@dataclass
+class CommandDisplayPayload:
+    """Structured display payload rendered by the UI layer."""
+
+    renderables: list[Any] = field(default_factory=list)
 
 
 @dataclass
@@ -22,6 +29,7 @@ class CommandResult:
     should_clear: bool = False
     inject_prompt: str | None = None  # Send as new prompt to LLM
     error: str | None = None
+    display: CommandDisplayPayload | None = None
 
 
 @dataclass(frozen=True, slots=True)

@@ -21,9 +21,6 @@ class ClearCommand(SlashCommand):
     async def execute(self, args: str, session: "Session", tui: "TUI", config: "Config") -> CommandResult:
         if session and session.context_manager:
             session.context_manager.clear()
-            tui.console.print()
-            tui.console.print("  [success]✓[/success] Conversation history cleared. Starting fresh.")
-            tui.console.print()
+            return CommandResult(should_clear=True)
         else:
             return CommandResult(error="No active session to clear.")
-        return CommandResult(should_clear=True)

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from commands.base import CommandResult, SlashCommand
+from commands.base import CommandDisplayPayload, CommandResult, SlashCommand
 
 if TYPE_CHECKING:
     from agent.session import Session
@@ -42,11 +42,11 @@ class ContextCommand(SlashCommand):
         filled = min(filled, bar_width)
 
         if pct >= 80:
-            bar_style = "bright_red"
+            bar_style = "context.utilization.high"
         elif pct >= 60:
-            bar_style = "bright_yellow"
+            bar_style = "context.utilization.medium"
         else:
-            bar_style = "bright_green"
+            bar_style = "context.utilization.low"
 
         bar = Text()
         bar.append("  [", style="dim")
@@ -105,9 +105,4 @@ class ContextCommand(SlashCommand):
             padding=(1, 1),
         )
 
-        tui.console.print()
-        tui.console.print(bar)
-        tui.console.print(panel)
-        tui.console.print()
-
-        return CommandResult()
+        return CommandResult(display=CommandDisplayPayload(renderables=["", bar, panel, ""]))

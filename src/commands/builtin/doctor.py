@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from commands.base import CommandResult, SlashCommand
+from commands.base import CommandDisplayPayload, CommandResult, SlashCommand
 
 if TYPE_CHECKING:
     from agent.session import Session
@@ -176,14 +176,10 @@ class DoctorCommand(SlashCommand):
             padding=(1, 1),
         )
 
-        tui.console.print()
-        tui.console.print(panel)
-
+        renderables: list[str | Panel] = ["", panel]
         if errors:
-            tui.console.print("  [error]Config errors:[/error]")
+            renderables.append("  [error]Config errors:[/error]")
             for err in errors:
-                tui.console.print(f"    [error]• {err}[/error]")
-
-        tui.console.print()
-
-        return CommandResult()
+                renderables.append(f"    [error]• {err}[/error]")
+        renderables.append("")
+        return CommandResult(display=CommandDisplayPayload(renderables=renderables))

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from commands.base import CommandResult, SlashCommand
+from commands.base import CommandDisplayPayload, CommandResult, SlashCommand
 
 if TYPE_CHECKING:
     from agent.session import Session
@@ -90,9 +90,7 @@ class ConfigCommand(SlashCommand):
             padding=(1, 1),
         )
 
-        tui.console.print()
-        tui.console.print(panel)
-        tui.console.print()
+        renderables: list[object] = ["", panel, ""]
 
         # Offer to open in editor
         if args.strip() == "edit":
@@ -104,12 +102,11 @@ class ConfigCommand(SlashCommand):
             if editor:
                 try:
                     subprocess.Popen([editor, target])  # noqa: S603
-                    tui.console.print(f"  [dim]Opening {target} in {editor}...[/dim]")
+                    renderables.append(f"  [dim]Opening {target} in {editor}...[/dim]")
                 except Exception as e:
                     return CommandResult(error=f"Failed to open editor: {e}")
             else:
-                tui.console.print("  [dim]Set $EDITOR to open config in your editor. Use /config edit[/dim]")
+                renderables.append("  [dim]Set $EDITOR to open config in your editor. Use /config edit[/dim]")
 
-        tui.console.print()
-
-        return CommandResult()
+        renderables.append("")
+        return CommandResult(display=CommandDisplayPayload(renderables=renderables))

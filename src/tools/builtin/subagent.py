@@ -400,7 +400,12 @@ class SubAgentTool(Tool):
         logger.info(f"Started background sub-agent task: {task_id}")
 
         return ToolResult.success_result(
-            output=f"Sub-agent started in background.\n\nTask ID: {task_id}\nAgent ID: {agent_id}\n\nUse TaskOutput tool to check status.",
+            output=(
+                "Sub-agent started in background.\n\n"
+                f"Task ID: {task_id}\n"
+                f"Agent ID: {agent_id}\n\n"
+                "Use the background task status API to check status."
+            ),
             metadata={
                 "task_id": task_id,
                 "agent_id": agent_id,

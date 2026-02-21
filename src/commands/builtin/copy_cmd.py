@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from commands.base import CommandResult, SlashCommand
+from commands.base import CommandDisplayPayload, CommandResult, SlashCommand
 
 if TYPE_CHECKING:
     from agent.session import Session
@@ -83,11 +83,15 @@ class CopyCommand(SlashCommand):
             preview = last_assistant[:80].replace("\n", " ")
             if len(last_assistant) > 80:
                 preview += "..."
-            tui.console.print()
-            tui.console.print(f"  [success]✓[/success] Copied to clipboard ({len(last_assistant)} chars)")
-            tui.console.print(f"  [dim]{preview}[/dim]")
-            tui.console.print()
+            return CommandResult(
+                display=CommandDisplayPayload(
+                    renderables=[
+                        "",
+                        f"  [success]✓[/success] Copied to clipboard ({len(last_assistant)} chars)",
+                        f"  [dim]{preview}[/dim]",
+                        "",
+                    ]
+                )
+            )
         else:
             return CommandResult(error="Failed to copy to clipboard. Clipboard utility not found.")
-
-        return CommandResult()

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from commands.base import CommandResult, SlashCommand
+from commands.base import CommandDisplayPayload, CommandResult, SlashCommand
 
 if TYPE_CHECKING:
     from agent.session import Session
@@ -41,10 +41,6 @@ class ModelCommand(SlashCommand):
 
         if not requested:
             # Show current model and available presets
-            tui.console.print()
-            tui.console.print(f"  [dim]Current model:[/dim] [accent]{config.model}[/accent]")
-            tui.console.print()
-
             table = Table(
                 title="Available Presets",
                 box=box.SIMPLE,
@@ -59,11 +55,19 @@ class ModelCommand(SlashCommand):
                 marker = " ◀" if model_id == config.model else ""
                 table.add_row(shortcut, f"{model_id}{marker}")
 
-            tui.console.print(table)
-            tui.console.print()
-            tui.console.print("  [dim]Use /model <name> to switch. Names or full model IDs accepted.[/dim]")
-            tui.console.print()
-            return CommandResult()
+            return CommandResult(
+                display=CommandDisplayPayload(
+                    renderables=[
+                        "",
+                        f"  [dim]Current model:[/dim] [accent]{config.model}[/accent]",
+                        "",
+                        table,
+                        "",
+                        "  [dim]Use /model <name> to switch. Names or full model IDs accepted.[/dim]",
+                        "",
+                    ]
+                )
+            )
 
         # Resolve model name
         model_id = _MODEL_PRESETS.get(requested.lower(), requested)
@@ -76,10 +80,12 @@ class ModelCommand(SlashCommand):
         if session and session.client:
             session.client._config.model = model_id
 
-        tui.console.print()
-        tui.console.print(
-            f"  [success]✓[/success] Model switched: [dim]{old_model}[/dim] → [accent]{model_id}[/accent]"
+        return CommandResult(
+            display=CommandDisplayPayload(
+                renderables=[
+                    "",
+                    f"  [success]✓[/success] Model switched: [dim]{old_model}[/dim] → [accent]{model_id}[/accent]",
+                    "",
+                ]
+            )
         )
-        tui.console.print()
-
-        return CommandResult()

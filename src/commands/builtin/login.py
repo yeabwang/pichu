@@ -6,7 +6,7 @@ import os
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from commands.base import CommandResult, SlashCommand
+from commands.base import CommandDisplayPayload, CommandResult, SlashCommand
 
 if TYPE_CHECKING:
     from agent.session import Session
@@ -90,11 +90,11 @@ class LoginCommand(SlashCommand):
         from config.loader import get_config_dir
 
         console = tui.console
-        console.print()
 
         # ── 1. Choose provider (arrow-key selector) ─────────────
-        console.print("  [bold]Select a provider:[/bold]")
-        console.print()
+        renderer = getattr(tui, "render_command_payload", None)
+        if callable(renderer):
+            renderer(["", "  [bold]Select a provider:[/bold]", ""])
 
         options: list[tuple[int, str]] = []
         for i, p in enumerate(_PROVIDERS):
@@ -159,21 +159,22 @@ class LoginCommand(SlashCommand):
         if serper_key:
             os.environ["SERPER_API_KEY"] = serper_key
 
-        console.print()
-        console.print(f"  [success]✓[/success] API keys saved to {env_path}")
-        console.print(f"  [success]✓[/success] Config saved to {config_file}")
-        console.print()
-        console.print(f"  [dim]Provider:[/dim]    {provider['name']}")
-        console.print(f"  [dim]Base URL:[/dim]    {base_url}")
-        console.print(f"  [dim]Model:[/dim]      {model}")
-        console.print(f"  [dim]LLM key:[/dim]    {_mask_key(api_key)}")
+        renderables: list[object] = [
+            "",
+            f"  [success]✓[/success] API keys saved to {env_path}",
+            f"  [success]✓[/success] Config saved to {config_file}",
+            "",
+            f"  [dim]Provider:[/dim]    {provider['name']}",
+            f"  [dim]Base URL:[/dim]    {base_url}",
+            f"  [dim]Model:[/dim]      {model}",
+            f"  [dim]LLM key:[/dim]    {_mask_key(api_key)}",
+        ]
         if serper_key:
-            console.print(f"  [dim]Serper key:[/dim]  {_mask_key(serper_key)}")
+            renderables.append(f"  [dim]Serper key:[/dim]  {_mask_key(serper_key)}")
         else:
-            console.print("  [dim]Serper key:[/dim]  [dim]skipped[/dim]")
-        console.print()
-
-        return CommandResult()
+            renderables.append("  [dim]Serper key:[/dim]  [dim]skipped[/dim]")
+        renderables.append("")
+        return CommandResult(display=CommandDisplayPayload(renderables=renderables))
 
     @staticmethod
     def _update_toml(path: Path, base_url: str, model: str) -> None:

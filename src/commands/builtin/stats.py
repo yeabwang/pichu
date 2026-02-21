@@ -6,7 +6,7 @@ import json
 from datetime import datetime
 from typing import TYPE_CHECKING
 
-from commands.base import CommandResult, SlashCommand
+from commands.base import CommandDisplayPayload, CommandResult, SlashCommand
 from utils.text import count_tokens
 
 if TYPE_CHECKING:
@@ -162,9 +162,4 @@ class StatsCommand(SlashCommand):
             padding=(1, 1),
         )
 
-        tui.console.print()
-        tui.console.print(panel)
-        tui.console.print(bar)
-        tui.console.print()
-
-        return CommandResult()
+        return CommandResult(display=CommandDisplayPayload(renderables=["", panel, bar, ""]))
