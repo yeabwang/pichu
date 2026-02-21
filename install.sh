@@ -1,29 +1,18 @@
 #!/usr/bin/env bash
 # pichu installer — https://github.com/yeabwang/pichu
+#
+# Usage:
+#   curl --proto '=https' --tlsv1.2 -fsSL \
+#     https://raw.githubusercontent.com/yeabwang/pichu/main/install.sh \
+#     -o /tmp/pichu-install.sh && bash /tmp/pichu-install.sh
+
 set -euo pipefail
 set -o noclobber
-umask 077
-export LC_ALL=C
 
-# Validate HOME before any path computations
-case "${HOME:-}" in
-    /*) ;;
-    *)  printf '\033[1;31merror:\033[0m HOME must be set to an absolute path.\n' >&2; exit 1 ;;
-esac
-
-# ── Constants ────────────────────────────────────────────────────────────────
 readonly REPO="yeabwang/pichu"
-readonly PICHU_VERSION="${PICHU_VERSION:-main}"
-case "$PICHU_VERSION" in
-    *[!A-Za-z0-9._/-]*) printf '\033[1;31merror:\033[0m PICHU_VERSION contains invalid characters.\n' >&2; exit 1 ;;
-esac
 readonly INSTALL_DIR="${PICHU_INSTALL_DIR:-$HOME/.local/bin}"
-case "$INSTALL_DIR" in
-    /*) ;;
-    *)  printf '\033[1;31merror:\033[0m PICHU_INSTALL_DIR must be an absolute path.\n' >&2; exit 1 ;;
-esac
-NO_MODIFY_PATH="${PICHU_NO_MODIFY_PATH:-0}"
-REQUESTED_ALIAS="${PICHU_ALIAS:-pichu}"   # may be overridden by --alias flag
+readonly NO_MODIFY_PATH="${PICHU_NO_MODIFY_PATH:-0}"
+REQUESTED_ALIAS="${PICHU_ALIAS:-pichu}"
 
 PATH_TARGET_DIR="$INSTALL_DIR"
 COMMAND_TARGET="pichu"
@@ -40,19 +29,9 @@ ALIAS_ALREADY_PRESENT=0
 ALIAS_CONFLICT=0
 ALIAS_ERROR=0
 
-_PICHU_TMPFILES=()
-_cleanup() {
-    local _f
-    for _f in "${_PICHU_TMPFILES[@]+"${_PICHU_TMPFILES[@]}"}"; do
-        rm -f "$_f" 2>/dev/null || true
-    done
-}
-trap _cleanup EXIT
-
-# ── Helpers ──────────────────────────────────────────────────────────────────
-info()  { printf '\033[1;34m==>\033[0m %s\n'         "$*"; }
-warn()  { printf '\033[1;33mwarning:\033[0m %s\n'    "$*" >&2; }
-error() { printf '\033[1;31merror:\033[0m %s\n'      "$*" >&2; exit 1; }
+info()  { printf '\033[1;34m==>\033[0m %s\n' "$*"; }
+warn()  { printf '\033[1;33mwarning:\033[0m %s\n' "$*" >&2; }
+error() { printf '\033[1;31merror:\033[0m %s\n' "$*" >&2; exit 1; }
 
 usage() {
     cat <<'EOF'
@@ -64,18 +43,12 @@ Options:
   -h, --help          Show this help
 
 Environment:
-  PICHU_INSTALL_DIR       Override install/bin directory hint (default: ~/.local/bin)
+  PICHU_INSTALL_DIR       Override install/bin directory (default: ~/.local/bin)
   PICHU_ALIAS             Alias name (default: pichu)
   PICHU_NO_MODIFY_PATH=1  Skip PATH modification
-  PICHU_VERSION           Git ref to install (default: main)
-
-Security note:
-  Download to a file first rather than piping to bash:
-    curl --proto '=https' --tlsv1.2 -fsSL <url> -o install.sh && bash install.sh
 EOF
 }
 
-# ── Alias validation ─────────────────────────────────────────────────────────
 validate_alias() {
     [ -z "$REQUESTED_ALIAS" ] && return 0
 
@@ -85,7 +58,7 @@ validate_alias() {
 
     if ! printf '%s' "$REQUESTED_ALIAS" | \
          grep -Eq '^[A-Za-z][A-Za-z0-9_-]{0,30}[A-Za-z0-9_]$|^[A-Za-z]$'; then
-        error "Invalid alias '$REQUESTED_ALIAS'. Use 1–32 chars: letters, numbers, _ or -, starting with a letter, not ending with '-'."
+        error "Invalid alias '$REQUESTED_ALIAS'. Use 1-32 chars: letters, numbers, _ or -, starting with a letter, not ending with '-'."
     fi
 
     case "$REQUESTED_ALIAS" in
@@ -101,10 +74,9 @@ validate_alias() {
 }
 
 regex_escape() {
-    printf '%s' "$1" | sed 's/[][\\.*^$+?{}()|-]/\\&/g'
+    printf '%s' "$1" | sed 's/[.[\*^$()+?{|]/\\&/g'
 }
 
-# ── Profile-file selection ───────────────────────────────────────────────────
 select_profile_file() {
     [ -n "$PROFILE_FILE" ] && return 0
 
@@ -133,16 +105,14 @@ select_profile_file() {
             ;;
     esac
 
-    # ── Security: verify profile file is safe to write ───────────────────────
     local profile_dir
     profile_dir="$(dirname "$PROFILE_FILE")"
     if [ ! -d "$profile_dir" ]; then
         mkdir -p -m 0700 "$profile_dir" || { warn "Cannot create $profile_dir"; return 1; }
     fi
 
-    # Refuse symlinks
     if [ -L "$PROFILE_FILE" ]; then
-        warn "Profile path '$PROFILE_FILE' is a symlink — refusing to write to it."
+        warn "Profile path '$PROFILE_FILE' cannot be used."
         return 1
     fi
 
@@ -164,27 +134,16 @@ select_profile_file() {
     fi
 }
 
-append_to_profile() {
-    if [ -L "$PROFILE_FILE" ]; then
-        warn "Refusing to write: '$PROFILE_FILE' is a symlink."
-        return 1
-    fi
-    cat "$1" >> "$PROFILE_FILE"
-}
-
-# ── PATH helpers ─────────────────────────────────────────────────────────────
 contains_path_segment() {
     case ":$PATH:" in *":$1:"*) return 0 ;; esac
     return 1
 }
 
 get_path_command() {
-    local safe_dir
-    safe_dir="$(printf '%s' "$PATH_TARGET_DIR" | sed "s/'/'\\''/g")"
     if [ "$SHELL_KIND" = "fish" ]; then
-        printf "fish_add_path '%s'" "$safe_dir"
+        printf "fish_add_path '%s'" "$PATH_TARGET_DIR"
     else
-        printf "export PATH='%s:\$PATH'" "$safe_dir"
+        printf "export PATH='%s:\$PATH'" "$PATH_TARGET_DIR"
     fi
 }
 
@@ -214,19 +173,17 @@ ensure_path_entry() {
 
     local tmp
     tmp="$(mktemp "${PROFILE_FILE}.pichu.XXXXXXXX")"
-    _PICHU_TMPFILES+=("$tmp")
     {
         printf '\n'
         printf '# >>> pichu path >>>\n'
         printf '%s\n' "$path_cmd"
         printf '# <<< pichu path <<<\n'
     } > "$tmp"
-    if ! append_to_profile "$tmp"; then PATH_ERROR=1; rm -f "$tmp"; return; fi
+    cat "$tmp" >> "$PROFILE_FILE"
     rm -f "$tmp"
     PATH_CHANGED=1
 }
 
-# ── Alias helpers ─────────────────────────────────────────────────────────────
 ensure_alias_entry() {
     [ -z "$REQUESTED_ALIAS" ] && return
 
@@ -251,7 +208,6 @@ ensure_alias_entry() {
 
         local tmp
         tmp="$(mktemp "${PROFILE_FILE}.pichu.XXXXXXXX")"
-        _PICHU_TMPFILES+=("$tmp")
         {
             printf '\n'
             printf '# >>> pichu alias >>>\n'
@@ -260,7 +216,7 @@ ensure_alias_entry() {
             printf 'end\n'
             printf '# <<< pichu alias <<<\n'
         } > "$tmp"
-        if ! append_to_profile "$tmp"; then ALIAS_ERROR=1; rm -f "$tmp"; return; fi
+        cat "$tmp" >> "$PROFILE_FILE"
         rm -f "$tmp"
         ALIAS_ADDED=1
         return
@@ -271,7 +227,6 @@ ensure_alias_entry() {
         return
     fi
 
-    # Conflict: alias name defined with a different value
     if grep -Eq "^[[:space:]]*alias[[:space:]]+${escaped_alias}=" "$PROFILE_FILE"; then
         ALIAS_CONFLICT=1
         return
@@ -282,33 +237,31 @@ ensure_alias_entry() {
 
     local tmp
     tmp="$(mktemp "${PROFILE_FILE}.pichu.XXXXXXXX")"
-    _PICHU_TMPFILES+=("$tmp")
     {
         printf '\n'
         printf '# >>> pichu alias >>>\n'
         printf "alias %s='%s'\n" "$REQUESTED_ALIAS" "$safe_target"
         printf '# <<< pichu alias <<<\n'
     } > "$tmp"
-    if ! append_to_profile "$tmp"; then ALIAS_ERROR=1; rm -f "$tmp"; return; fi
+    cat "$tmp" >> "$PROFILE_FILE"
     rm -f "$tmp"
     ALIAS_ADDED=1
 }
 
-# ── Summary ──────────────────────────────────────────────────────────────────
 print_summary() {
     printf '\n'
 
-    if   [ "$PATH_CHANGED"         -eq 1 ]; then printf 'PATH modified in %s — restart your shell.\n' "$PROFILE_FILE"
-    elif [ "$PATH_ALREADY_PRESENT" -eq 1 ]; then printf 'PATH already contains install directory.\n'
-    elif [ "$PATH_SKIPPED"         -eq 1 ]; then printf 'PATH modification skipped (--no-modify-path).\n'
-    else                                         printf 'PATH was not modified automatically.\n'
+    if   [ "$PATH_CHANGED"          -eq 1 ]; then printf 'PATH modified in %s — restart your shell.\n' "$PROFILE_FILE"
+    elif [ "$PATH_ALREADY_PRESENT"  -eq 1 ]; then printf 'PATH already contains install directory.\n'
+    elif [ "$PATH_SKIPPED"          -eq 1 ]; then printf 'PATH modification skipped (--no-modify-path).\n'
+    else                                          printf 'PATH was not modified automatically.\n'
     fi
 
     if [ -n "$REQUESTED_ALIAS" ]; then
-        if   [ "$ALIAS_ADDED"          -eq 1 ]; then printf 'Alias "%s" added to %s.\n' "$REQUESTED_ALIAS" "$PROFILE_FILE"
+        if   [ "$ALIAS_ADDED"           -eq 1 ]; then printf 'Alias "%s" added to %s.\n' "$REQUESTED_ALIAS" "$PROFILE_FILE"
         elif [ "$ALIAS_ALREADY_PRESENT" -eq 1 ]; then printf 'Alias "%s" already configured.\n' "$REQUESTED_ALIAS"
-        elif [ "$ALIAS_CONFLICT"       -eq 1 ]; then printf 'Alias "%s" already exists with a different definition — not modified.\n' "$REQUESTED_ALIAS"
-        else                                         printf 'Alias "%s" was not configured automatically.\n' "$REQUESTED_ALIAS"
+        elif [ "$ALIAS_CONFLICT"        -eq 1 ]; then printf 'Alias "%s" already exists with a different definition — not modified.\n' "$REQUESTED_ALIAS"
+        else                                          printf 'Alias "%s" was not configured automatically.\n' "$REQUESTED_ALIAS"
         fi
     fi
 
@@ -325,7 +278,6 @@ print_summary() {
     fi
 }
 
-# ── Argument parsing ─────────────────────────────────────────────────────────
 parse_args() {
     while [ "$#" -gt 0 ]; do
         case "$1" in
@@ -336,7 +288,6 @@ parse_args() {
                 ;;
             --no-modify-path) NO_MODIFY_PATH=1 ;;
             -h|--help) usage; exit 0 ;;
-            # Reject any unknown flag to avoid silent misuse
             -*) error "Unknown option: $1" ;;
             *)  error "Unexpected argument: $1" ;;
         esac
@@ -344,45 +295,34 @@ parse_args() {
     done
 }
 
-# ════════════════════════════════════════════════════════════════════════════
 parse_args "$@"
 validate_alias
 
-# ── Python version check ─────────────────────────────────────────────────────
 command -v python3 >/dev/null 2>&1 || error "Python 3.11+ is required. Install it first."
 
 PYTHON_VERSION="$(python3 -c "import sys; print(f'{sys.version_info.major}.{sys.version_info.minor}')")"
-if ! printf '%s' "$PYTHON_VERSION" | grep -Eq '^[0-9]+\.[0-9]+$'; then
-    error "Unexpected Python version output: '$PYTHON_VERSION'"
-fi
 PYTHON_MAJOR="${PYTHON_VERSION%%.*}"
 PYTHON_MINOR="${PYTHON_VERSION##*.}"
 
 { [ "$PYTHON_MAJOR" -gt 3 ] || { [ "$PYTHON_MAJOR" -eq 3 ] && [ "$PYTHON_MINOR" -ge 11 ]; }; } || \
     error "Python 3.11+ required (found $PYTHON_VERSION)."
 
-# ── Select installer ─────────────────────────────────────────────────────────
-if   command -v uv    >/dev/null 2>&1; then INSTALLER="uv"
-elif command -v pipx  >/dev/null 2>&1; then INSTALLER="pipx"
-elif command -v pip3  >/dev/null 2>&1; then INSTALLER="pip3"
-elif command -v pip   >/dev/null 2>&1; then INSTALLER="pip"
+if   command -v uv   >/dev/null 2>&1; then INSTALLER="uv"
+elif command -v pipx >/dev/null 2>&1; then INSTALLER="pipx"
+elif command -v pip3 >/dev/null 2>&1; then INSTALLER="pip3"
+elif command -v pip  >/dev/null 2>&1; then INSTALLER="pip"
 else error "No package installer found. Install uv: https://docs.astral.sh/uv/getting-started/installation/"
 fi
 
-info "Installing pichu with $INSTALLER…"
+info "Installing pichu with $INSTALLER..."
 
-# ── Install ──────────────────────────────────────────────────────────────────
 case "$INSTALLER" in
-    uv)         uv tool install --force "pichu @ git+https://github.com/${REPO}.git@${PICHU_VERSION}" ;;
-    pipx)       pipx install "git+https://github.com/${REPO}.git@${PICHU_VERSION}" ;;
-    pip3|pip)   "$INSTALLER" install --user "git+https://github.com/${REPO}.git@${PICHU_VERSION}" ;;
+    uv)       uv tool install --force "pichu @ git+https://github.com/${REPO}.git" ;;
+    pipx)     pipx install "git+https://github.com/${REPO}.git" ;;
+    pip3|pip) "$INSTALLER" install --user "git+https://github.com/${REPO}.git" ;;
 esac
 
-# ── Locate installed binary ───────────────────────────────────────────────────
-if [ -x "$INSTALL_DIR/pichu" ]; then
-    COMMAND_TARGET="$INSTALL_DIR/pichu"
-    PATH_TARGET_DIR="$INSTALL_DIR"
-elif command -v pichu >/dev/null 2>&1; then
+if command -v pichu >/dev/null 2>&1; then
     COMMAND_TARGET="$(command -v pichu)"
     PATH_TARGET_DIR="$(dirname "$COMMAND_TARGET")"
 else

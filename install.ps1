@@ -3,11 +3,6 @@
 .SYNOPSIS
     pichu installer for Windows (PowerShell).
 
-.DESCRIPTION
-    Installs pichu using uv, pipx, pip3, or pip.
-    Optionally adds the install directory to the user PATH and configures
-    a PowerShell alias in the user's profile.
-
 .PARAMETER Alias
     Override the alias name (default: pichu).
 
@@ -17,14 +12,8 @@
 .PARAMETER InstallDir
     Override the install/bin directory hint.
 
-.PARAMETER Version
-    Git ref (tag, branch, or commit) to install (default: main).
-
 .PARAMETER Help
     Show usage information.
-
-.EXAMPLE
-    .\install.ps1
 #>
 
 [CmdletBinding()]
@@ -32,7 +21,6 @@ param(
     [string] $Alias      = $(if ($env:PICHU_ALIAS)       { $env:PICHU_ALIAS }       else { 'pichu' }),
     [switch] $NoModifyPath,
     [string] $InstallDir = $(if ($env:PICHU_INSTALL_DIR) { $env:PICHU_INSTALL_DIR } else { "$env:USERPROFILE\.local\bin" }),
-    [string] $Version    = $(if ($env:PICHU_VERSION)     { $env:PICHU_VERSION }     else { 'main' }),
     [switch] $Help
 )
 
@@ -40,28 +28,22 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 $ConfirmPreference = 'None'
 
-# ── Enforce TLS 1.2+ ─────────────────────────────────────────────────────────
-[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-
-# ── Honour env override for NoModifyPath ─────────────────────────────────────
 if ($env:PICHU_NO_MODIFY_PATH -eq '1') { $NoModifyPath = $true }
 
-# ── Module-level state ────────────────────────────────────────────────────────
-$repo           = 'yeabwang/pichu'
-$pathTargetDir  = $InstallDir  # may be updated after install locates the binary
-$profileFile    = $null
+$repo            = 'yeabwang/pichu'
+$pathTargetDir   = $InstallDir
+$profileFile     = $null
 
-$pathModified      = $false
+$pathModified       = $false
 $pathAlreadyPresent = $false
 $pathSkipped        = $false
 $pathError          = $false
 
-$aliasAdded         = $false
+$aliasAdded          = $false
 $aliasAlreadyPresent = $false
-$aliasConflict      = $false
-$aliasError         = $false
+$aliasConflict       = $false
+$aliasError          = $false
 
-# ── Helpers ───────────────────────────────────────────────────────────────────
 function Write-Info([string]$Message) { Write-Host "==> $Message" -ForegroundColor Cyan }
 function Write-Warn([string]$Message) { Write-Warning $Message }
 function Fail([string]$Message)       { throw $Message }
@@ -71,29 +53,18 @@ function Show-Usage {
         'pichu installer',
         '',
         'Options:',
-        '  -Alias <name>       Override alias name (default: pichu)',
+        '  -Alias <n>          Override alias name (default: pichu)',
         '  -NoModifyPath       Do not modify user PATH',
         '  -InstallDir <path>  Override install/bin directory hint',
-        '  -Version <ref>      Git ref to install (default: main)',
         '  -Help               Show this help',
         '',
         'Environment:',
         '  PICHU_INSTALL_DIR       Override install/bin directory hint',
         '  PICHU_ALIAS             Alias name (default: pichu)',
-        '  PICHU_NO_MODIFY_PATH=1  Skip PATH modification',
-        '  PICHU_VERSION           Git ref to install (default: main)',
-        '',
-        'Security note:',
-        '  Download to disk before executing — never pipe remote scripts directly',
-        '  into PowerShell. Example:',
-        '    $tmp = New-TemporaryFile',
-        '    Invoke-WebRequest -Uri <url> -OutFile $tmp.FullName -UseBasicParsing',
-        '    & $tmp.FullName',
-        '    Remove-Item $tmp.FullName -Force'
+        '  PICHU_NO_MODIFY_PATH=1  Skip PATH modification'
     ) | ForEach-Object { Write-Output $_ }
 }
 
-# ── Alias validation ──────────────────────────────────────────────────────────
 function Test-AliasName([string]$AliasName) {
     if ([string]::IsNullOrWhiteSpace($AliasName)) { return }
 
@@ -101,10 +72,8 @@ function Test-AliasName([string]$AliasName) {
         Fail "Invalid alias '$AliasName': must not start with '-'."
     }
 
-    # 1–32 chars, starts with letter, ends with letter/digit,
-    # interior may include letters, digits, underscores, or hyphens.
     if ($AliasName -notmatch '^[A-Za-z](?:[A-Za-z0-9_-]{0,30}[A-Za-z0-9_])?$') {
-        Fail "Invalid alias '$AliasName'. Use 1–32 chars: letters, numbers, _ or -, starting with a letter and not ending with '-'."
+        Fail "Invalid alias '$AliasName'. Use 1-32 chars: letters, numbers, _ or -, starting with a letter and not ending with '-'."
     }
 
     $reserved = @(
@@ -118,14 +87,12 @@ function Test-AliasName([string]$AliasName) {
     }
 }
 
-# ── Binary location ───────────────────────────────────────────────────────────
 function Get-CommandPath([string]$Name) {
     $cmd = Get-Command $Name -ErrorAction SilentlyContinue
     if ($null -eq $cmd) { return $null }
 
     foreach ($prop in @('Source','Path','Definition')) {
-        $propObj = $cmd.PSObject.Properties[$prop]
-        $val = if ($propObj) { $propObj.Value } else { $null }
+        $val = $cmd.PSObject.Properties[$prop]?.Value
         if ($val -and (Test-Path -LiteralPath $val -PathType Leaf)) {
             return $val
         }
@@ -133,7 +100,6 @@ function Get-CommandPath([string]$Name) {
     return $null
 }
 
-# ── Python version check ───────────────────────────────────────────────────────
 function Get-PythonVersion {
     foreach ($exe in @('python','py')) {
         $cmd = Get-Command $exe -ErrorAction SilentlyContinue
@@ -145,7 +111,6 @@ function Get-PythonVersion {
     return $null
 }
 
-# ── PATH helpers ───────────────────────────────────────────────────────────────
 function Get-NormalisedSegment([string]$Seg) {
     $Seg.Trim().TrimEnd('\').ToLowerInvariant()
 }
@@ -172,7 +137,6 @@ function Set-PathEntry([string]$Dir, [bool]$Skip) {
     try {
         $newPath = if ([string]::IsNullOrWhiteSpace($userPath)) { $Dir } else { "$Dir;$userPath" }
         [Environment]::SetEnvironmentVariable('Path', $newPath, 'User')
-        # Only update the process PATH after the registry write succeeded.
         $env:Path = "$Dir;$env:Path"
         $script:pathModified = $true
     }
@@ -182,43 +146,36 @@ function Set-PathEntry([string]$Dir, [bool]$Skip) {
     }
 }
 
-# ── Profile-file safety ────────────────────────────────────────────────────────
 function Assert-ProfileFileSafe([string]$ProfilePath) {
     $parentDir = Split-Path -Parent $ProfilePath
 
     if (-not (Test-Path -LiteralPath $parentDir)) {
-        New-Item -ItemType Directory -LiteralPath $parentDir -Force | Out-Null
-
+        New-Item -ItemType Directory -Path $parentDir -Force | Out-Null
         try {
             $acl = Get-Acl -LiteralPath $parentDir
             $acl.SetAccessRuleProtection($true, $false)
             $rule = [System.Security.AccessControl.FileSystemAccessRule]::new(
-                [System.Security.Principal.WindowsIdentity]::GetCurrent().Name,
-                'FullControl',
-                'ContainerInherit,ObjectInherit',
-                'None',
-                'Allow'
+                $env:USERNAME, 'FullControl',
+                'ContainerInherit,ObjectInherit', 'None', 'Allow'
             )
             $acl.AddAccessRule($rule)
             Set-Acl -LiteralPath $parentDir -AclObject $acl -ErrorAction SilentlyContinue
         } catch {
-            # Non-fatal; warn and continue.
-            Write-Warn "Could not harden directory permissions on $parentDir"
+            Write-Warn "Could not set permissions on $parentDir"
         }
     }
 
     if (-not (Test-Path -LiteralPath $ProfilePath)) {
-        New-Item -ItemType File -LiteralPath $ProfilePath -Force | Out-Null
+        New-Item -ItemType File -Path $ProfilePath -Force | Out-Null
         return
     }
 
     $fileInfo = Get-Item -LiteralPath $ProfilePath -Force -ErrorAction SilentlyContinue
     if ($fileInfo -and ($fileInfo.Attributes -band [System.IO.FileAttributes]::ReparsePoint)) {
-        Fail "Profile file '$ProfilePath' is a symbolic link or junction — refusing to write."
+        Fail "Profile file '$ProfilePath' cannot be used."
     }
 }
 
-# ── Alias entry management ────────────────────────────────────────────────────
 function Set-AliasEntry([string]$AliasName) {
     if ([string]::IsNullOrWhiteSpace($AliasName)) { return }
 
@@ -239,7 +196,6 @@ function Set-AliasEntry([string]$AliasName) {
         return
     }
 
-    # Read the file with an explicit encoding to avoid BOM/codepage issues.
     $content = Get-Content -LiteralPath $script:profileFile -Raw -Encoding UTF8 -ErrorAction SilentlyContinue
     if ($null -eq $content) { $content = '' }
 
@@ -268,29 +224,18 @@ function Set-AliasEntry([string]$AliasName) {
         if ($content -match $p) { $script:aliasConflict = $true; return }
     }
 
-    # Append the alias block with explicit UTF-8 encoding (no BOM).
-    $safeAlias = $AliasName -replace "'", "''"
     $block = @"
 
 # >>> pichu alias >>>
-Set-Alias -Name '$safeAlias' -Value pichu
+Set-Alias -Name $AliasName -Value pichu
 # <<< pichu alias <<<
 
 "@
-
-    $fi = Get-Item -LiteralPath $script:profileFile -Force -ErrorAction SilentlyContinue
-    if ($fi -and ($fi.Attributes -band [System.IO.FileAttributes]::ReparsePoint)) {
-        $script:aliasError = $true
-        Write-Warn "Profile '$script:profileFile' is a symlink — refusing to write."
-        return
-    }
     Add-Content -LiteralPath $script:profileFile -Value $block -Encoding UTF8 -NoNewline:$false
-
     Set-Alias -Name $AliasName -Value pichu -ErrorAction SilentlyContinue
     $script:aliasAdded = $true
 }
 
-# ── Package installation ───────────────────────────────────────────────────────
 function Select-Installer {
     foreach ($tool in @('uv','pipx','pip3','pip')) {
         if (Get-Command $tool -ErrorAction SilentlyContinue) { return $tool }
@@ -299,22 +244,19 @@ function Select-Installer {
 }
 
 function Install-Pichu([string]$Installer) {
-    Write-Info "Installing pichu with $Installer…"
-    $gitUrl = "git+https://github.com/$repo.git@$Version"
-    $pkgRef = "pichu @ $gitUrl"
+    Write-Info "Installing pichu with $Installer..."
 
     switch ($Installer) {
-        'uv'   { & uv tool install --force "$pkgRef" }
-        'pipx' { & pipx install "$gitUrl" }
-        'pip3' { & pip3 install --user "$gitUrl" }
-        'pip'  { & pip  install --user "$gitUrl" }
+        'uv'   { & uv tool install --force "pichu @ git+https://github.com/$repo.git" }
+        'pipx' { & pipx install "git+https://github.com/$repo.git" }
+        'pip3' { & pip3 install --user "git+https://github.com/$repo.git" }
+        'pip'  { & pip  install --user "git+https://github.com/$repo.git" }
         default { Fail "Unsupported installer '$Installer'." }
     }
 
     if ($LASTEXITCODE -ne 0) { Fail "Failed to install pichu with $Installer (exit $LASTEXITCODE)." }
 }
 
-# ── Summary ────────────────────────────────────────────────────────────────────
 function Write-Summary {
     Write-Output ''
 
@@ -334,36 +276,20 @@ function Write-Summary {
         Write-Output "Successfully installed. Run 'pichu' from anywhere."
     } else {
         Write-Output "Installed, but 'pichu' is not yet on PATH in this shell."
-        Write-Output "Manual PATH command:"
         Write-Output "  `$env:Path = `"$pathTargetDir;`$env:Path`""
-        Write-Output "User PATH target:"
-        Write-Output "  $pathTargetDir"
+        Write-Output "  User PATH target: $pathTargetDir"
     }
 }
 
-# ════════════════════════════════════════════════════════════════════════════
 if ($Help) { Show-Usage; exit 0 }
 
 Test-AliasName $Alias
 
-# Validate InstallDir is a rooted (absolute) path
-if (-not [System.IO.Path]::IsPathRooted($InstallDir)) {
-    Fail "InstallDir must be an absolute path: '$InstallDir'"
-}
-
-if ($Version -notmatch '^[A-Za-z0-9._/-]+$') {
-    Fail "Version contains invalid characters: '$Version'"
-}
-
 $verText = Get-PythonVersion
-if ([string]::IsNullOrWhiteSpace($verText)) {
-    Fail 'Python 3.11+ is required. Install it first.'
-}
+if ([string]::IsNullOrWhiteSpace($verText)) { Fail 'Python 3.11+ is required. Install it first.' }
 
-if ($verText -notmatch '^\d+\.\d+$') {
-    Fail "Unexpected Python version output: '$verText'"
-}
 $verParts = $verText.Split('.')
+if ($verParts.Count -lt 2) { Fail "Cannot parse Python version '$verText'." }
 
 $major = [int]$verParts[0]
 $minor = [int]$verParts[1]
@@ -374,15 +300,8 @@ if ($major -lt 3 -or ($major -eq 3 -and $minor -lt 11)) {
 $installer = Select-Installer
 Install-Pichu $installer
 
-$expectedBin = Join-Path $InstallDir 'pichu'
-$expectedExe = Join-Path $InstallDir 'pichu.exe'
-if ((Test-Path -LiteralPath $expectedBin -PathType Leaf) -or
-    (Test-Path -LiteralPath $expectedExe -PathType Leaf)) {
-    $pathTargetDir = $InstallDir
-} else {
-    $pichuPath = Get-CommandPath 'pichu'
-    if ($pichuPath) { $pathTargetDir = Split-Path -Parent $pichuPath }
-}
+$pichuPath = Get-CommandPath 'pichu'
+if ($pichuPath) { $pathTargetDir = Split-Path -Parent $pichuPath }
 
 Set-PathEntry -Dir $pathTargetDir -Skip:($NoModifyPath.IsPresent)
 Set-AliasEntry $Alias
