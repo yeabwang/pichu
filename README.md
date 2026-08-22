@@ -1,3 +1,5 @@
+
+
 <p align="center">
   <img src="https://raw.githubusercontent.com/yeabwang/pichu/main/assets/logo.png" alt="pichu Logo" width="200">
 
@@ -46,7 +48,7 @@
 
 ## Quick Start
 
-Install pichu (recommended: one-line installer):
+Install pichu (requires Python 3.11+, recommended: one-line installer):
   - See [docs/install.md](docs/install.md)
 
 ```bash
