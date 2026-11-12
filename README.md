@@ -18,16 +18,6 @@
  <img src="https://img.shields.io/github/stars/yeabwang/pichu?style=social">
   </p>
 
-  <!-- Links -->
-  <p align="center">
-    <a href="https://github.com/yeabwang/pichu">Home</a> •
-    <a href="https://github.com/yeabwang/pichu/stargazers">Star</a> •
-    <a href="https://github.com/yeabwang/pichu/issues">Report Bug</a> •
-    <a href="https://github.com/yeabwang/pichu/pulls">Submit PR</a> •
-    <a href="https://pypi.org/project/pichu/">PyPI</a>
-  </p>
-</p>
-
 ---
 
 <p align="center">
