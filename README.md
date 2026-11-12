@@ -12,10 +12,10 @@
 
   <!-- Badges -->
   <p align="center">
-    <img src="https://assets.piptrends.com/get-last-week-downloads-badge/pichu.svg">
+    <a href="https://pepy.tech/projects/pichu"><img src="https://static.pepy.tech/personalized-badge/pichu?period=total&units=INTERNATIONAL_SYSTEM&left_color=BLACK&right_color=GREEN&left_text=downloads" alt="PyPI Downloads"></a>
     <img src="https://badge.fury.io/py/pichu.svg">
     <img src="https://img.shields.io/github/license/yeabwang/pichu">
-    <img src="https://img.shields.io/github/stars/yeabwang/pichu?style=social">
+ <img src="https://img.shields.io/github/stars/yeabwang/pichu?style=social">
   </p>
 
   <!-- Links -->
