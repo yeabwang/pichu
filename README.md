@@ -26,15 +26,15 @@
 
 ## Features
 
-* **Composable tool stack** — files, shell, web, tasks, and memory in one agent
-* **Sub-agents & task orchestration** — delegate, isolate, and coordinate complex workflows
-* **MCP ecosystem integration** — connect external MCP servers as native tools
-* **Context management** — token-aware compaction, pruning, and usage tracking
-* **Session management** — persistent transcripts, resume, rewind, and fork sessions
-* **Memory system** — global and project memory with structured retrieval
-* **Hooks & automation** — lifecycle hooks for tool use, compaction, and agent control
-* **Interactive terminal UX** — 29 slash commands for runtime control and diagnostics
-* **Safety & reliability** — workspace trust prompt, sandboxing, approvals, retries, and audit logging
+* **Composable tool stack**  :  files, shell, web, tasks, and memory in one agent
+* **Sub-agents & task orchestration**  :  delegate, isolate, and coordinate complex workflows
+* **MCP ecosystem integration**  :  connect external MCP servers as native tools
+* **Context management**  :  token-aware compaction, pruning, and usage tracking
+* **Session management**  :  persistent transcripts, resume, rewind, and fork sessions
+* **Memory system**  :  global and project memory with structured retrieval
+* **Hooks & automation**  :  lifecycle hooks for tool use, compaction, and agent control
+* **Interactive terminal UX**  :  29 slash commands for runtime control and diagnostics
+* **Safety & reliability**  :  workspace trust prompt, sandboxing, approvals, retries, and audit logging
 
 ## Quick Start
 
@@ -69,20 +69,20 @@ pichu "explain this repo"
 
 ### Module and Architecture References
 
-- [Agent Module](docs/agent-module.md) — runtime loop, events, session lifecycle
-- [Client Module](docs/client-module.md) — LLM client, streaming, retry
-- [Commands Module](docs/commands-module.md) — slash command system
-- [Config Module](docs/config-module.md) — configuration schema and loading
-- [Context Module](docs/context-module.md) — context management and compaction
-- [Hooks Module](docs/hooks-module.md) — lifecycle hook engine
-- [Logging Module](docs/logging-module.md) — runtime and audit logging
-- [MCP Module](docs/mcp-module.md) — MCP server integration
-- [Safety Module](docs/safety-module.md) — approval and sandbox policies
-- [Sub-agents Module](docs/subagents-module.md) — sub-agent orchestration
-- [Task Management](docs/task-management.md) — task system architecture
-- [Tool Management](docs/tool-management.md) — tool registry and execution
-- [UI Module](docs/ui-module.md) — terminal UI architecture and rendering pipeline
-- [Utils Module](docs/utils-module.md) — shared runtime utilities
+- [Agent Module](docs/agent-module.md)  :  runtime loop, events, session lifecycle
+- [Client Module](docs/client-module.md)  :  LLM client, streaming, retry
+- [Commands Module](docs/commands-module.md)  :  slash command system
+- [Config Module](docs/config-module.md)  :  configuration schema and loading
+- [Context Module](docs/context-module.md)  :  context management and compaction
+- [Hooks Module](docs/hooks-module.md)  :  lifecycle hook engine
+- [Logging Module](docs/logging-module.md)  :  runtime and audit logging
+- [MCP Module](docs/mcp-module.md)  :  MCP server integration
+- [Safety Module](docs/safety-module.md)  :  approval and sandbox policies
+- [Sub-agents Module](docs/subagents-module.md)  :  sub-agent orchestration
+- [Task Management](docs/task-management.md)  :  task system architecture
+- [Tool Management](docs/tool-management.md)  :  tool registry and execution
+- [UI Module](docs/ui-module.md)  :  terminal UI architecture and rendering pipeline
+- [Utils Module](docs/utils-module.md)  :  shared runtime utilities
 
 ## Support the Project
 
@@ -97,4 +97,4 @@ Contributions of any size are welcome.
 
 ## License
 
-Apache 2.0 — see [LICENSE](LICENSE).
+Apache 2.0  :  see [LICENSE](LICENSE).
